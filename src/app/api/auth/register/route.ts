@@ -4,7 +4,11 @@ import { NextResponse } from 'next/server';
 async function notifyTelegram(email: string, username: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
-  if (!token || !chatId) return;
+
+  if (!token || !chatId) {
+    console.warn('[Telegram] TELEGRAM_BOT_TOKEN o TELEGRAM_CHAT_ID no configurados');
+    return;
+  }
 
   const now = new Date().toLocaleString('es-ES', {
     timeZone: 'America/Caracas',
@@ -18,11 +22,18 @@ async function notifyTelegram(email: string, username: string) {
     `📧 Email: \`${email}\`\n` +
     `🕐 Hora: ${now}`;
 
-  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'Markdown' }),
-  }).catch(() => {}); // fallo silencioso — no bloquea el registro
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'Markdown' }),
+    });
+    const json = await res.json();
+    if (!json.ok) console.error('[Telegram] Error:', json);
+    else console.log('[Telegram] Notificación enviada a', chatId);
+  } catch (err) {
+    console.error('[Telegram] Fetch falló:', err);
+  }
 }
 
 const supabaseAdmin = createClient(
@@ -62,8 +73,8 @@ export async function POST(request: Request) {
       });
     }
 
-    // Notificación Telegram (no bloqueante)
-    notifyTelegram(email, username);
+    // Notificación Telegram
+    await notifyTelegram(email, username);
 
     return NextResponse.json({ success: true });
   } catch {
