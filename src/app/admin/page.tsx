@@ -98,13 +98,27 @@ export default function AdminPage() {
               <Icon name="shield" className="w-6 h-6 text-primary" />
               <h1 className="text-xl font-bold">Panel de Admin</h1>
             </div>
-            <Link
-              href="/predictions"
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition"
-            >
-              <Icon name="arrowleft" />
-              Volver
-            </Link>
+            <div className="flex items-center gap-3">
+              <a
+                href="/api/admin/export"
+                download
+                className="flex items-center gap-2 px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white text-sm font-semibold rounded-lg transition active:scale-95"
+                title="Exportar Excel con todas las predicciones"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                </svg>
+                Exportar Excel
+              </a>
+              <Link
+                href="/predictions"
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition"
+              >
+                <Icon name="arrowleft" />
+                Volver
+              </Link>
+            </div>
           </div>
 
           <nav className="flex gap-1 -mb-px">
