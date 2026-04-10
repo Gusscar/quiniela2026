@@ -24,6 +24,13 @@ export async function savePrediction(
   goalsA: number | null,
   goalsB: number | null
 ): Promise<void> {
+  // Validate goals range
+  if (goalsA !== null && (goalsA < 0 || goalsA > 50 || !Number.isInteger(goalsA))) {
+    throw new Error('Marcador inválido');
+  }
+  if (goalsB !== null && (goalsB < 0 || goalsB > 50 || !Number.isInteger(goalsB))) {
+    throw new Error('Marcador inválido');
+  }
   const { error } = await supabase.from('predictions').upsert(
     {
       user_id: userId,

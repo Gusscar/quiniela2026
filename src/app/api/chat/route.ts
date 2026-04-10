@@ -1,5 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { NextResponse } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
+import { NextResponse, type NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -13,37 +15,56 @@ Sobre la app:
 - El administrador actualiza los marcadores reales el día del partido
 
 Páginas disponibles:
-- /predictions → Predicciones: el usuario selecciona el grupo (A-L) y coloca su marcador predicho para cada partido. Puede editar hasta que el partido empiece.
-- /teams → Equipos: muestra los 48 equipos con banderas, estadísticas (PJ, G, E, P, goles), próximos partidos. Se expande al tocar cada equipo.
-- /rankings → Ranking: tabla con todos los usuarios ordenados por puntos
-- /rules → Reglas: explica cómo funciona la quiniela
+- /predictions → Predicciones
+- /teams → Equipos con banderas y estadísticas
+- /rankings → Ranking global
+- /rules → Reglas
 
-Cómo llenar predicciones:
-1. Ir a /predictions
-2. Seleccionar el grupo del partido (A, B, C... L)
-3. En cada tarjeta de partido, en la sección "Tu predicción", escribir el número de goles de cada equipo
-4. Tocar "Guardar" — aparece confirmación con balón ⚽
-5. Para cambiar: tocar "Editar" en la predicción guardada
+Responde SIEMPRE en español. Sé amigable, usa emojis de fútbol ocasionalmente ⚽🏆. Respuestas cortas (máximo 3 párrafos).`;
 
-Responde SIEMPRE en español. Sé amigable, usa emojis de fútbol ocasionalmente ⚽🏆. Si el usuario pregunta algo que no está en la app, dile amablemente que solo puedes ayudar con la quiniela. Respuestas cortas y directas (máximo 3 párrafos).`;
+export async function POST(request: NextRequest) {
+  // Require authentication
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
+  );
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+  }
 
-export async function POST(request: Request) {
   try {
-    const { messages, page } = await request.json();
+    const body = await request.json();
+    const { messages, page } = body;
 
-    const pageContext = page ? `\n\nEl usuario está actualmente en la página: ${page}` : '';
+    // Validate messages array
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return NextResponse.json({ error: 'Mensajes inválidos' }, { status: 400 });
+    }
+    // Limit conversation length to prevent abuse
+    if (messages.length > 20) {
+      return NextResponse.json({ error: 'Conversación muy larga' }, { status: 400 });
+    }
+    // Validate last message length
+    const lastMsg = messages[messages.length - 1];
+    if (!lastMsg?.content || typeof lastMsg.content !== 'string' || lastMsg.content.length > 500) {
+      return NextResponse.json({ error: 'Mensaje inválido o muy largo' }, { status: 400 });
+    }
+
+    const pageContext = page && typeof page === 'string' ? `\n\nPágina actual: ${page}` : '';
 
     const response = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 512,
       system: SYSTEM_PROMPT + pageContext,
-      messages,
+      messages: messages.slice(-10), // send only last 10 messages to limit token usage
     });
 
     const text = response.content[0].type === 'text' ? response.content[0].text : '';
     return NextResponse.json({ reply: text });
-  } catch (error: any) {
-    console.error('Chat error:', error);
+  } catch {
     return NextResponse.json({ error: 'Error al procesar tu pregunta' }, { status: 500 });
   }
 }

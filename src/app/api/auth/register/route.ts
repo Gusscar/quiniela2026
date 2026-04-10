@@ -44,10 +44,21 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: Request) {
   try {
-    const { email, password, username } = await request.json();
+    const body = await request.json();
+    const { email, password, username } = body;
 
+    // Server-side validation
     if (!email || !password || !username) {
       return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 });
+    }
+    if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+      return NextResponse.json({ error: 'Email inválido' }, { status: 400 });
+    }
+    if (typeof password !== 'string' || password.length < 8 || password.length > 128) {
+      return NextResponse.json({ error: 'La contraseña debe tener entre 8 y 128 caracteres' }, { status: 400 });
+    }
+    if (typeof username !== 'string' || !/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
+      return NextResponse.json({ error: 'Usuario: 3-30 caracteres, solo letras, números y _' }, { status: 400 });
     }
 
     // Crear usuario sin requerir confirmación de email
