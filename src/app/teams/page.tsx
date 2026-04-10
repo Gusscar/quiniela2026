@@ -7,6 +7,7 @@ import { getMatches } from '@/lib/matches';
 import { Group, Team, Match } from '@/types';
 import { useAuthStore } from '@/stores/auth-store';
 import { useRouter } from 'next/navigation';
+import { getTeamRating } from '@/lib/team-ratings';
 
 const groups: Group[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
@@ -62,9 +63,35 @@ function StatBadge({ label, value, color }: { label: string; value: number; colo
   );
 }
 
+function RatingBar({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-xs text-muted-foreground w-16 shrink-0">{label}</span>
+      <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${color}`}
+          style={{ width: `${value}%` }}
+        />
+      </div>
+      <span className="text-xs font-semibold tabular-nums w-7 text-right">{value}</span>
+    </div>
+  );
+}
+
+function FormDot({ result }: { result: 'W' | 'D' | 'L' }) {
+  const styles = { W: 'bg-green-500', D: 'bg-yellow-500', L: 'bg-destructive' };
+  const labels = { W: 'G', D: 'E', L: 'P' };
+  return (
+    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${styles[result]}`}>
+      {labels[result]}
+    </div>
+  );
+}
+
 function TeamCard({ team, matches }: { team: Team; matches: Match[] }) {
   const [expanded, setExpanded] = useState(false);
   const stats = computeStats(team.id, matches);
+  const rating = getTeamRating(team.name);
   const upcoming = stats.matches.filter((m) => m.status !== 'finished').slice(0, 3);
 
   return (
@@ -83,18 +110,40 @@ function TeamCard({ team, matches }: { team: Team; matches: Match[] }) {
         )}
         <div className="flex-1 min-w-0">
           <p className="font-semibold truncate">{team.name}</p>
-          <p className="text-xs text-muted-foreground">Grupo {team.group_letter}</p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <p className="text-xs text-muted-foreground">Grupo {team.group_letter}</p>
+            {rating && (
+              <span className="text-[10px] font-medium text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">
+                FIFA #{rating.fifa_rank}
+              </span>
+            )}
+          </div>
         </div>
         {/* Mini stats */}
         <div className="flex items-center gap-3 shrink-0 mr-2">
-          <div className="text-center">
-            <p className="text-sm font-bold text-primary">{stats.points}</p>
-            <p className="text-xs text-muted-foreground">Pts</p>
-          </div>
-          <div className="text-center">
-            <p className="text-sm font-bold">{stats.played}</p>
-            <p className="text-xs text-muted-foreground">PJ</p>
-          </div>
+          {rating ? (
+            <>
+              <div className="text-center" title="Ataque">
+                <p className="text-sm font-bold text-green-500">{rating.attack}</p>
+                <p className="text-[10px] text-muted-foreground">ATQ</p>
+              </div>
+              <div className="text-center" title="Defensa">
+                <p className="text-sm font-bold text-blue-400">{rating.defense}</p>
+                <p className="text-[10px] text-muted-foreground">DEF</p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-center">
+                <p className="text-sm font-bold text-primary">{stats.points}</p>
+                <p className="text-xs text-muted-foreground">Pts</p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-bold">{stats.played}</p>
+                <p className="text-xs text-muted-foreground">PJ</p>
+              </div>
+            </>
+          )}
         </div>
         <svg
           className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`}
@@ -107,6 +156,23 @@ function TeamCard({ team, matches }: { team: Team; matches: Match[] }) {
       {/* Expanded stats */}
       {expanded && (
         <div className="border-t border-border">
+          {/* Reference ratings */}
+          {rating && (
+            <div className="px-4 py-4 bg-secondary/10 border-b border-border space-y-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Referencia histórica
+              </p>
+              <RatingBar label="Ataque" value={rating.attack} color="bg-green-500" />
+              <RatingBar label="Defensa" value={rating.defense} color="bg-blue-400" />
+              <div className="flex items-center gap-2 pt-1">
+                <span className="text-xs text-muted-foreground w-16 shrink-0">Forma</span>
+                <div className="flex gap-1">
+                  {rating.form.map((r, i) => <FormDot key={i} result={r} />)}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Stats row */}
           <div className="grid grid-cols-5 gap-2 px-4 py-4 bg-secondary/20">
             <StatBadge label="PJ" value={stats.played} color="text-foreground" />
