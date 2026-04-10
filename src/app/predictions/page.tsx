@@ -18,7 +18,7 @@ const emptyGroups: Record<Group, Match[]> = {
 };
 
 export default function PredictionsPage() {
-  const { user, loading } = useAuthStore();
+  const { user, loading, isAdmin } = useAuthStore();
   const [selectedGroup, setSelectedGroup] = useState<Group>('A');
   const router = useRouter();
 
@@ -34,12 +34,11 @@ export default function PredictionsPage() {
   });
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [user, loading, router]);
+    if (!loading && !user) router.push('/login');
+    if (!loading && isAdmin) router.push('/admin');
+  }, [user, loading, isAdmin, router]);
 
-  if (loading || !user) {
+  if (loading || !user || isAdmin) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />

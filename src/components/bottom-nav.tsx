@@ -4,6 +4,19 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 
+const adminItems = [
+  {
+    href: '/admin',
+    label: 'Admin',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+          d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      </svg>
+    ),
+  },
+];
+
 const navItems = [
   {
     href: '/predictions',
@@ -59,15 +72,17 @@ const navItems = [
 
 export function BottomNav() {
   const pathname = usePathname();
-  const { user } = useAuthStore();
+  const { user, isAdmin } = useAuthStore();
 
   if (!user) return null;
+
+  const items = isAdmin ? adminItems : navItems;
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-card/95 backdrop-blur border-t border-border"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="flex items-stretch h-14">
-        {navItems.map((item) => {
+        {items.map((item) => {
           const active = pathname === item.href;
           return (
             <Link

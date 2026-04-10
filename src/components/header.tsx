@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
@@ -34,28 +34,14 @@ function ShieldIcon({ className = 'w-4 h-4' }: { className?: string }) {
 
 export default function Header() {
   const pathname = usePathname();
-  const { user, logout: logoutStore } = useAuthStore();
+  const { user, isAdmin, setIsAdmin, logout: logoutStore } = useAuthStore();
   const router = useRouter();
-  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    async function checkAdmin() {
-      if (!user) {
-        setIsAdmin(false);
-        return;
-      }
-
-      const { data } = await supabase
-        .from('admin_users')
-        .select('id')
-        .eq('id', user.id)
-        .single();
-
-      setIsAdmin(!!data);
-    }
-
-    checkAdmin();
-  }, [user]);
+    if (!user) { setIsAdmin(false); return; }
+    supabase.from('admin_users').select('id').eq('id', user.id).single()
+      .then(({ data }) => setIsAdmin(!!data));
+  }, [user, setIsAdmin]);
 
   const handleLogout = async () => {
     await logout();
