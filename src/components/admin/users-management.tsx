@@ -60,10 +60,14 @@ export function UsersManagement() {
 
   const toggleAdmin = useMutation({
     mutationFn: async ({ userId, isAdmin }: { userId: string; isAdmin: boolean }) => {
-      if (isAdmin) {
-        await supabase.from('admin_users').delete().eq('id', userId);
-      } else {
-        await supabase.from('admin_users').insert({ id: userId });
+      const res = await fetch('/api/admin/toggle-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, makeAdmin: !isAdmin }),
+      });
+      if (!res.ok) {
+        const { error } = await res.json();
+        throw new Error(error || 'Error al actualizar');
       }
     },
     onSuccess: (_, { isAdmin }) => {

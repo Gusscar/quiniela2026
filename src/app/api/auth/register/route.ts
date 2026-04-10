@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
+import { rateLimit } from '@/lib/rate-limit';
 
 async function notifyTelegram(email: string, username: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -42,7 +43,19 @@ const supabaseAdmin = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Rate limit: 5 registrations per IP per 15 minutes
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    ?? request.headers.get('x-real-ip')
+    ?? 'unknown';
+
+  if (!rateLimit(ip, 5, 15 * 60 * 1000)) {
+    return NextResponse.json(
+      { error: 'Demasiados intentos. Espera 15 minutos.' },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await request.json();
     const { email, password, username } = body;
