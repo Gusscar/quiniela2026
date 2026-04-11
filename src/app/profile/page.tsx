@@ -46,6 +46,7 @@ export default function ProfilePage() {
   let totalPoints = 0;
   let exactCount = 0;
   let winnerCount = 0;
+  let drawCount = 0;
   let zeroCount = 0;
   let resolvedPredictions = 0;
 
@@ -61,7 +62,8 @@ export default function ProfilePage() {
     resolvedPredictions++;
     totalPoints += pts;
     if (pts === 3) exactCount++;
-    else if (pts === 1) winnerCount++;
+    else if (pts === 2) winnerCount++;
+    else if (pts === 1) drawCount++;
     else zeroCount++;
   }
 
@@ -77,7 +79,7 @@ export default function ProfilePage() {
 
   const initial = username.charAt(0).toUpperCase();
   const accuracy = resolvedPredictions > 0
-    ? Math.round(((exactCount + winnerCount) / resolvedPredictions) * 100)
+    ? Math.round(((exactCount + winnerCount + drawCount) / resolvedPredictions) * 100)
     : null;
 
   return (
@@ -128,7 +130,7 @@ export default function ProfilePage() {
         <div className="bg-card border border-border rounded-2xl px-5 py-4 flex flex-col gap-1">
           <span className="text-xs text-muted-foreground uppercase tracking-wide">✅ Ganador correcto</span>
           <span className="text-3xl font-bold tabular-nums text-blue-400">{winnerCount}</span>
-          <span className="text-xs text-muted-foreground">1 pt cada uno</span>
+          <span className="text-xs text-muted-foreground">2 pts cada uno</span>
         </div>
       </div>
 
@@ -161,15 +163,23 @@ export default function ProfilePage() {
           <div className="flex gap-2">
             <div className="flex-1 text-center bg-green-500/10 border border-green-500/20 rounded-xl py-2.5">
               <p className="text-xl font-bold text-green-400">{exactCount}</p>
-              <p className="text-xs text-muted-foreground">Exactos</p>
+              <p className="text-xs text-muted-foreground">Exacto</p>
+              <p className="text-[10px] text-muted-foreground/60">3 pts</p>
             </div>
             <div className="flex-1 text-center bg-blue-500/10 border border-blue-500/20 rounded-xl py-2.5">
               <p className="text-xl font-bold text-blue-400">{winnerCount}</p>
               <p className="text-xs text-muted-foreground">Ganador</p>
+              <p className="text-[10px] text-muted-foreground/60">2 pts</p>
+            </div>
+            <div className="flex-1 text-center bg-yellow-500/10 border border-yellow-500/20 rounded-xl py-2.5">
+              <p className="text-xl font-bold text-yellow-400">{drawCount}</p>
+              <p className="text-xs text-muted-foreground">Empate</p>
+              <p className="text-[10px] text-muted-foreground/60">1 pt</p>
             </div>
             <div className="flex-1 text-center bg-secondary border border-border rounded-xl py-2.5">
               <p className="text-xl font-bold text-muted-foreground">{zeroCount}</p>
               <p className="text-xs text-muted-foreground">Fallados</p>
+              <p className="text-[10px] text-muted-foreground/60">0 pts</p>
             </div>
             {accuracy !== null && (
               <div className="flex-1 text-center bg-primary/10 border border-primary/20 rounded-xl py-2.5">

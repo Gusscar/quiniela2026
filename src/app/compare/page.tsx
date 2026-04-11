@@ -28,12 +28,13 @@ function PredBadge({ pred, match, label }: {
   const finished = match.status === 'finished';
   const hasPred = pred && pred.goalsA !== null && pred.goalsB !== null;
 
-  let pts: 0 | 1 | 3 = 0;
+  let pts: 0 | 1 | 2 | 3 = 0;
   let badgeColor = '';
   if (finished && hasPred) {
     pts = calculatePoints(pred!.goalsA, pred!.goalsB, match.scorea ?? undefined, match.scoreb ?? undefined);
     badgeColor = pts === 3 ? 'bg-green-500/15 border-green-500/40 text-green-300'
-      : pts === 1 ? 'bg-blue-500/15 border-blue-500/40 text-blue-300'
+      : pts === 2 ? 'bg-blue-500/15 border-blue-500/40 text-blue-300'
+      : pts === 1 ? 'bg-yellow-500/15 border-yellow-500/40 text-yellow-300'
       : 'bg-red-500/10 border-red-500/20 text-red-400';
   }
 
@@ -53,7 +54,7 @@ function PredBadge({ pred, match, label }: {
       )}
       {finished && hasPred && (
         <span className="text-[10px] font-semibold">
-          {pts === 3 ? '⭐ 3 pts' : pts === 1 ? '✅ 1 pt' : '❌ 0 pts'}
+          {pts === 3 ? '⭐ 3 pts' : pts === 2 ? '✅ 2 pts' : pts === 1 ? '🤝 1 pt' : '❌ 0 pts'}
         </span>
       )}
     </div>
@@ -170,7 +171,11 @@ export default function ComparePage() {
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full bg-blue-500/50"/>
-            <span>Ganador (1 pt)</span>
+            <span>Ganador (2 pts)</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-yellow-500/50"/>
+            <span>Empate (1 pt)</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full bg-red-500/50"/>

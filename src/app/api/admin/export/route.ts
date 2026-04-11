@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
   // ── Sheet 1: RESUMEN ──────────────────────────────────────────
   const summaryRows: any[] = [];
   for (const profile of profiles) {
-    let pts = 0, total = 0, exact = 0, winner = 0, missed = 0;
+    let pts = 0, total = 0, exact = 0, winner = 0, draw = 0, missed = 0;
     for (const match of matches) {
       const pred = predsMap.get(`${profile.id}:${match.id}`);
       if (!pred) continue;
@@ -65,7 +65,8 @@ export async function GET(req: NextRequest) {
         );
         pts += p;
         if (p === 3) exact++;
-        else if (p === 1) winner++;
+        else if (p === 2) winner++;
+        else if (p === 1) draw++;
         else missed++;
       }
     }
@@ -74,9 +75,10 @@ export async function GET(req: NextRequest) {
       'Puntos': pts,
       'Predicciones': total,
       'Exactos (3pts)': exact,
-      'Ganador (1pt)': winner,
+      'Ganador (2pts)': winner,
+      'Empate (1pt)': draw,
       'Fallados (0pts)': missed,
-      'Pendientes': total - exact - winner - missed,
+      'Pendientes': total - exact - winner - draw - missed,
     });
   }
   summaryRows.sort((a, b) => b['Puntos'] - a['Puntos']);
@@ -84,7 +86,7 @@ export async function GET(req: NextRequest) {
   summaryRows.forEach((r, i) => { r['Pos'] = i + 1; });
   const summarySheet = XLSX.utils.json_to_sheet(
     summaryRows,
-    { header: ['Pos', 'Usuario', 'Puntos', 'Predicciones', 'Exactos (3pts)', 'Ganador (1pt)', 'Fallados (0pts)', 'Pendientes'] }
+    { header: ['Pos', 'Usuario', 'Puntos', 'Predicciones', 'Exactos (3pts)', 'Ganador (2pts)', 'Empate (1pt)', 'Fallados (0pts)', 'Pendientes'] }
   );
 
   // ── Sheet 2: PREDICCIONES (grilla usuario × partido) ──────────

@@ -1,4 +1,4 @@
-export type ScoringResult = 0 | 1 | 3;
+export type ScoringResult = 0 | 1 | 2 | 3;
 
 export function calculatePoints(
   predA: number | null,
@@ -10,18 +10,21 @@ export function calculatePoints(
     return 0;
   }
 
+  // Exact score match (3 pts) — covers both wins and draws
   if (predA === actualA && predB === actualB) {
     return 3;
   }
 
-  const predWinner = predA - predB;
-  const actualWinner = actualA - actualB;
+  const predResult = Math.sign(predA - predB);   // -1 / 0 / 1
+  const actualResult = Math.sign(actualA - actualB);
 
-  if (Math.sign(predWinner) === Math.sign(actualWinner) && predWinner !== 0) {
-    return 1;
+  // Correct winner (non-draw), wrong score → 2 pts
+  if (predResult !== 0 && predResult === actualResult) {
+    return 2;
   }
 
-  if (predWinner === 0 && actualWinner === 0) {
+  // Predicted draw + actual draw, wrong exact score → 1 pt
+  if (predResult === 0 && actualResult === 0) {
     return 1;
   }
 

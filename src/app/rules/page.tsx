@@ -20,26 +20,41 @@ export default function RulesPage() {
           </h2>
           <div className="space-y-4">
             <div className="flex items-start gap-4">
-              <div className="bg-primary text-primary-foreground w-12 h-12 rounded-lg flex items-center justify-center font-bold text-xl shrink-0">
+              <div className="bg-green-600 text-white w-12 h-12 rounded-lg flex items-center justify-center font-bold text-xl shrink-0">
                 3
               </div>
               <div>
-                <h3 className="font-medium">Resultado Exacto</h3>
+                <h3 className="font-medium">Marcador Exacto</h3>
                 <p className="text-muted-foreground text-sm">
-                  Si aciertas el marcador exacto (goles de ambos equipos), ganas <strong>3 puntos</strong>.
+                  Aciertas los goles exactos de ambos equipos (ya sea con ganador o empate). Ganas <strong>3 puntos</strong>.
                 </p>
+                <p className="text-xs text-muted-foreground mt-1">Ej: predices 2-1 y termina 2-1 ✅</p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
-              <div className="bg-accent text-accent-foreground w-12 h-12 rounded-lg flex items-center justify-center font-bold text-xl shrink-0">
-                1
+              <div className="bg-blue-600 text-white w-12 h-12 rounded-lg flex items-center justify-center font-bold text-xl shrink-0">
+                2
               </div>
               <div>
                 <h3 className="font-medium">Ganador Correcto</h3>
                 <p className="text-muted-foreground text-sm">
-                  Si aciertas quién gana (o si hay empate) pero no el marcador exacto, ganas <strong>1 punto</strong>.
+                  Aciertas qué equipo gana pero el marcador exacto no. Ganas <strong>2 puntos</strong>.
                 </p>
+                <p className="text-xs text-muted-foreground mt-1">Ej: predices 2-1 y termina 3-1 ✅</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="bg-yellow-500 text-white w-12 h-12 rounded-lg flex items-center justify-center font-bold text-xl shrink-0">
+                1
+              </div>
+              <div>
+                <h3 className="font-medium">Empate Sin Marcador</h3>
+                <p className="text-muted-foreground text-sm">
+                  Predices empate, el partido termina en empate, pero con marcador diferente. Ganas <strong>1 punto</strong>.
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">Ej: predices 1-1 y termina 0-0 ✅</p>
               </div>
             </div>
 
@@ -50,7 +65,7 @@ export default function RulesPage() {
               <div>
                 <h3 className="font-medium">Incorrecto</h3>
                 <p className="text-muted-foreground text-sm">
-                  Si no aciertas el ganador ni el empate, obtienes <strong>0 puntos</strong>.
+                  No aciertas el resultado. Obtienes <strong>0 puntos</strong>.
                 </p>
               </div>
             </div>
