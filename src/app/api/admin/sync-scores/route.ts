@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
   // 2. Fetch DB matches
   const { data: dbMatches, error: matchesErr } = await supabaseAdmin
     .from('matches')
-    .select('id, teama_id, teamb_id, datetime, status');
+    .select('id, teama_id, teamb_id, datetime, status, scorea, scoreb');
   if (matchesErr) return NextResponse.json({ error: matchesErr.message }, { status: 500 });
 
   // Build lookup: `${teama_id}:${teamb_id}` → match row
