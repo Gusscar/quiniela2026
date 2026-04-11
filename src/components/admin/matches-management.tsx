@@ -149,8 +149,56 @@ function MatchRow({ match }: { match: Match }) {
   );
 }
 
+function SyncButton({ onSynced }: { onSynced: () => void }) {
+  const [state, setState] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle');
+  const [result, setResult] = useState<string>('');
+
+  const handleSync = async () => {
+    setState('loading');
+    try {
+      const res = await fetch('/api/admin/sync-scores', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Error desconocido');
+      setResult(`${data.updated} partido(s) actualizado(s)`);
+      setState('ok');
+      onSynced();
+      setTimeout(() => setState('idle'), 4000);
+    } catch (err: any) {
+      setResult(err.message);
+      setState('error');
+      setTimeout(() => setState('idle'), 5000);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        onClick={handleSync}
+        disabled={state === 'loading'}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+          state === 'ok' ? 'bg-green-600/20 text-green-400' :
+          state === 'error' ? 'bg-destructive/20 text-destructive' :
+          'bg-blue-600/20 text-blue-400 hover:bg-blue-600/30'
+        } disabled:opacity-50`}
+        title="Sincronizar resultados desde football-data.org"
+      >
+        <svg className={`w-3.5 h-3.5 ${state === 'loading' ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        {state === 'loading' ? 'Sincronizando...' : 'Sincronizar'}
+      </button>
+      {result && (
+        <span className={`text-xs ${state === 'error' ? 'text-destructive' : 'text-green-400'}`}>
+          {result}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function MatchesManagement() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'live' | 'finished'>('all');
+  const queryClient = useQueryClient();
 
   const { data: matches = [], isLoading } = useQuery({
     queryKey: ['matches'],
@@ -173,7 +221,10 @@ export function MatchesManagement() {
   return (
     <div className="bg-card rounded-xl border border-border p-6">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <h2 className="text-lg font-semibold">Partidos ({matches.length})</h2>
+        <div className="flex items-center gap-3 flex-wrap">
+          <h2 className="text-lg font-semibold">Partidos ({matches.length})</h2>
+          <SyncButton onSynced={() => queryClient.invalidateQueries({ queryKey: ['matches'] })} />
+        </div>
         <div className="flex gap-1">
           {(['all', 'pending', 'live', 'finished'] as const).map((f) => (
             <button
