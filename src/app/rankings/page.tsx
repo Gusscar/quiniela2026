@@ -1,5 +1,6 @@
 import { getRankings } from '@/lib/rankings';
 import { Standing } from '@/types';
+import { RulesModal } from '@/components/rules-modal';
 
 export const revalidate = 30;
 
@@ -13,7 +14,10 @@ export default async function RankingsPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Ranking</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Ranking</h1>
+        <RulesModal />
+      </div>
 
       <div className="bg-card rounded-xl border border-border overflow-hidden">
         <table className="w-full">
