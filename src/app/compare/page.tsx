@@ -98,6 +98,10 @@ export default function ComparePage() {
     setLoadingFriend(true);
     try {
       const res = await fetch(`/api/compare/${profile.id}`);
+      if (!res.ok) {
+        setFriendPreds([]);
+        return;
+      }
       const data = await res.json();
       setFriendPreds(Array.isArray(data) ? data : []);
     } catch {
