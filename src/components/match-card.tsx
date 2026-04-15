@@ -61,6 +61,26 @@ function Countdown({ datetime }: { datetime: string }) {
   );
 }
 
+function TeamFlag({ flag_url, name, fallback }: { flag_url?: string | null; name?: string; fallback: string }) {
+  const [imgError, setImgError] = useState(false);
+
+  if (flag_url && !imgError) {
+    return (
+      <img
+        src={flag_url}
+        alt={name}
+        className="w-10 h-10 object-contain"
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+  return (
+    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-bold text-sm">
+      {fallback}
+    </div>
+  );
+}
+
 export function MatchCard({ match, children }: MatchCardProps) {
   const statusConfig: Record<string, { label: string; className: string }> = {
     pending:   { label: 'Pendiente', className: 'bg-muted text-muted-foreground' },
@@ -104,13 +124,11 @@ export function MatchCard({ match, children }: MatchCardProps) {
 
         {/* Team A */}
         <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-          {match.teamA?.flag_url ? (
-            <img src={match.teamA.flag_url} alt={match.teamA.name} className="w-10 h-10 object-contain" />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-bold text-sm">
-              {match.teamA?.name?.slice(0, 2).toUpperCase() ?? 'A'}
-            </div>
-          )}
+          <TeamFlag
+            flag_url={match.teamA?.flag_url}
+            name={match.teamA?.name}
+            fallback={match.teamA?.name?.slice(0, 2).toUpperCase() ?? 'A'}
+          />
           <span className="text-sm font-semibold text-center leading-tight line-clamp-2">
             {match.teamA?.name ?? 'Equipo A'}
           </span>
@@ -129,13 +147,11 @@ export function MatchCard({ match, children }: MatchCardProps) {
 
         {/* Team B */}
         <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-          {match.teamB?.flag_url ? (
-            <img src={match.teamB.flag_url} alt={match.teamB.name} className="w-10 h-10 object-contain" />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-bold text-sm">
-              {match.teamB?.name?.slice(0, 2).toUpperCase() ?? 'B'}
-            </div>
-          )}
+          <TeamFlag
+            flag_url={match.teamB?.flag_url}
+            name={match.teamB?.name}
+            fallback={match.teamB?.name?.slice(0, 2).toUpperCase() ?? 'B'}
+          />
           <span className="text-sm font-semibold text-center leading-tight line-clamp-2">
             {match.teamB?.name ?? 'Equipo B'}
           </span>
