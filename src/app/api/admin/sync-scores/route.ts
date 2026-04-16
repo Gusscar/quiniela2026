@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 import { fetchWCMatches, mapStatus, normalizeName, getNameVariants } from '@/lib/football-api';
+import { sendPushToAll } from '@/lib/push';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -75,10 +76,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 502 });
   }
 
+  // Build id → display name map for notifications
+  const idToName = new Map<string, string>();
+  for (const t of teams ?? []) idToName.set(t.id, t.name);
+
   // 4. Match and update
   let updated = 0;
   let skipped = 0;
   const errors: string[] = [];
+
+  // Collect status changes for push notifications
+  const justStarted: { home: string; away: string }[] = [];
+  const justFinished: { home: string; away: string; scoreHome: number; scoreAway: number }[] = [];
 
   for (const apiMatch of apiMatches) {
     const newStatus = mapStatus(apiMatch.status);
@@ -129,6 +138,23 @@ export async function POST(req: NextRequest) {
       continue;
     }
 
+    // Track status transitions for push notifications
+    if (dbMatch.status === 'pending' && newStatus === 'live') {
+      justStarted.push({
+        home: idToName.get(homeId) ?? apiMatch.homeTeam.name,
+        away: idToName.get(awayId) ?? apiMatch.awayTeam.name,
+      });
+    } else if (dbMatch.status !== 'finished' && newStatus === 'finished') {
+      const scoreHome = apiMatch.score.fullTime.home ?? 0;
+      const scoreAway = apiMatch.score.fullTime.away ?? 0;
+      justFinished.push({
+        home: idToName.get(homeId) ?? apiMatch.homeTeam.name,
+        away: idToName.get(awayId) ?? apiMatch.awayTeam.name,
+        scoreHome,
+        scoreAway,
+      });
+    }
+
     const { error: updateErr } = await supabaseAdmin
       .from('matches')
       .update({ status: newStatus, scorea, scoreb })
@@ -141,10 +167,38 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Send push notifications (fire-and-forget, don't block response)
+  if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+    const pushPromises: Promise<unknown>[] = [];
+
+    for (const m of justStarted) {
+      pushPromises.push(
+        sendPushToAll({
+          title: '⚽ ¡Partido iniciado!',
+          body: `${m.home} vs ${m.away} ha comenzado`,
+          url: '/predictions',
+        })
+      );
+    }
+
+    for (const m of justFinished) {
+      pushPromises.push(
+        sendPushToAll({
+          title: '🏁 Resultado final',
+          body: `${m.home} ${m.scoreHome} - ${m.scoreAway} ${m.away}`,
+          url: '/rankings',
+        })
+      );
+    }
+
+    Promise.allSettled(pushPromises).catch(() => {});
+  }
+
   return NextResponse.json({
     ok: true,
     updated,
     skipped,
+    notifications: { started: justStarted.length, finished: justFinished.length },
     errors: errors.length > 0 ? errors : undefined,
     timestamp: new Date().toISOString(),
   });

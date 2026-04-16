@@ -58,3 +58,48 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
+// Handle incoming push notifications
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  let payload;
+  try {
+    payload = event.data.json();
+  } catch {
+    payload = { title: 'Quiniela Mundial 2026', body: event.data.text() };
+  }
+
+  const { title, body, icon, url } = payload;
+
+  event.waitUntil(
+    self.registration.showNotification(title ?? 'Quiniela Mundial 2026', {
+      body,
+      icon: icon ?? '/icon-192.png',
+      badge: '/icon-192.png',
+      data: { url: url ?? '/predictions' },
+      vibrate: [200, 100, 200],
+    })
+  );
+});
+
+// Open app when user taps notification
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url ?? '/predictions';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      // If app is already open, focus it and navigate
+      for (const client of windowClients) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.focus();
+          client.navigate(url);
+          return;
+        }
+      }
+      // Otherwise open a new tab
+      if (clients.openWindow) return clients.openWindow(url);
+    })
+  );
+});

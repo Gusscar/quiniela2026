@@ -8,6 +8,7 @@ import { PWAInstallPrompt } from "@/components/pwa-install";
 import { FloatingAssistant } from "@/components/floating-assistant";
 import { BottomNav } from "@/components/bottom-nav";
 import { PWAUpdater } from "@/components/pwa-updater";
+import { PushNotifications } from "@/components/push-notifications";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -48,6 +49,7 @@ export default function RootLayout({
           <AuthListener />
           <PWAInstallPrompt />
           <PWAUpdater />
+          <PushNotifications />
           <Header />
           <main className="flex-1 pb-14 md:pb-0">{children}</main>
           <BottomNav />
