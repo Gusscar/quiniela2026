@@ -11,9 +11,12 @@ const supabaseAdmin = createClient(
 );
 
 async function isAuthorized(req: NextRequest): Promise<boolean> {
-  // Allow Vercel cron via secret header
-  const cronSecret = req.headers.get('x-cron-secret');
-  if (cronSecret && cronSecret === process.env.CRON_SECRET) return true;
+  // Allow Vercel cron via Authorization: Bearer <CRON_SECRET>
+  const authHeader = req.headers.get('authorization');
+  if (authHeader && process.env.CRON_SECRET) {
+    const token = authHeader.replace(/^Bearer\s+/i, '');
+    if (token === process.env.CRON_SECRET) return true;
+  }
 
   // Allow logged-in admin users
   try {

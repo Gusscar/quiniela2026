@@ -59,8 +59,7 @@ function LoginForm() {
         return;
       }
 
-      router.push('/predictions');
-      router.refresh();
+      window.location.href = '/predictions';
     } catch {
       setError('Error al iniciar sesión');
     } finally {

@@ -1,0 +1,27 @@
+name: Sync Match Scores
+
+on:
+  schedule:
+    # Corre cada 2 horas entre 11:00 y 23:00 UTC
+    # Cubre toda la ventana de partidos del Mundial 2026
+    - cron: "0 11,13,15,17,19,21,23 * * *"
+  workflow_dispatch: # Permite ejecutarlo manualmente desde GitHub
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync scores from football-data.org
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X GET "${{ secrets.APP_URL }}/api/admin/sync-scores" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+
+          echo "HTTP Status: $response"
+
+          if [ "$response" != "200" ]; then
+            echo "Error: sync-scores returned $response"
+            exit 1
+          fi
+
+          echo "Sync completado correctamente"
