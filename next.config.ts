@@ -25,6 +25,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ['web-push'],
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'flagcdn.com' },

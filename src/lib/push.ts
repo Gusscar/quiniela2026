@@ -1,18 +1,6 @@
 import webpush from 'web-push';
 import { createClient } from '@supabase/supabase-js';
 
-webpush.setVapidDetails(
-  `mailto:${process.env.VAPID_EMAIL ?? 'admin@quiniela.app'}`,
-  process.env.VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
-
 export interface PushPayload {
   title: string;
   body: string;
@@ -21,6 +9,18 @@ export interface PushPayload {
 }
 
 export async function sendPushToAll(payload: PushPayload): Promise<{ sent: number; failed: number }> {
+  // Configure lazily so build-time missing env vars don't crash module load
+  webpush.setVapidDetails(
+    `mailto:${process.env.VAPID_EMAIL ?? 'admin@quiniela.app'}`,
+    process.env.VAPID_PUBLIC_KEY!,
+    process.env.VAPID_PRIVATE_KEY!
+  );
+
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
   const { data: subs } = await supabaseAdmin
     .from('push_subscriptions')
     .select('endpoint, p256dh, auth');
