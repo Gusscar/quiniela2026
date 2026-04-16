@@ -4,7 +4,6 @@ import { Suspense, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { login } from '@/lib/auth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -39,16 +38,31 @@ function LoginForm() {
     setError('');
 
     try {
-      await login(data.email, data.password);
-      router.push('/predictions');
-    } catch (err: any) {
-      if (err.message?.toLowerCase().includes('email not confirmed')) {
-        setError('Debes confirmar tu email antes de iniciar sesión. Revisa tu bandeja de entrada.');
-      } else if (err.message?.toLowerCase().includes('invalid login credentials')) {
-        setError('Email o contraseña incorrectos.');
-      } else {
-        setError(err.message || 'Error al iniciar sesión');
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: data.email, password: data.password }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 429) {
+          setError(json.error);
+        } else if (json.error?.toLowerCase().includes('email not confirmed')) {
+          setError('Debes confirmar tu email antes de iniciar sesión. Revisa tu bandeja de entrada.');
+        } else if (json.error?.toLowerCase().includes('invalid login credentials')) {
+          setError('Email o contraseña incorrectos.');
+        } else {
+          setError(json.error || 'Error al iniciar sesión');
+        }
+        return;
       }
+
+      router.push('/predictions');
+      router.refresh();
+    } catch {
+      setError('Error al iniciar sesión');
     } finally {
       setLoading(false);
     }
