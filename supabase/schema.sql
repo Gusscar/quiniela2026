@@ -64,8 +64,22 @@ CREATE POLICY "Public read teams" ON teams FOR SELECT USING (true);
 -- Matches: public read
 CREATE POLICY "Public read matches" ON matches FOR SELECT USING (true);
 
--- Predictions: users can only access their own
-CREATE POLICY "Users read own predictions" ON predictions FOR SELECT USING (auth.uid() = user_id);
+-- Predictions: users can always read/write their own.
+-- Any authenticated user can also read predictions for finished/live matches (used by /compare).
+-- Pending match predictions remain private to prevent copying before kick-off.
+CREATE POLICY "Users read own predictions" ON predictions
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Authenticated read finished predictions" ON predictions
+  FOR SELECT USING (
+    auth.uid() IS NOT NULL AND
+    EXISTS (
+      SELECT 1 FROM matches m
+      WHERE m.id = predictions.match_id
+        AND m.status IN ('finished', 'live')
+    )
+  );
+
 CREATE POLICY "Users insert own predictions" ON predictions FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users update own predictions" ON predictions FOR UPDATE USING (auth.uid() = user_id);
 

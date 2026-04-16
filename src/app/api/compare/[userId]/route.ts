@@ -1,6 +1,17 @@
+import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
+
+// Service role used server-side only — key never reaches the client.
+// Needed to read another user's predictions regardless of RLS.
+// The RLS policy "Authenticated read finished predictions" covers client-side
+// access, but the compare page intentionally shows all match statuses.
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { autoRefreshToken: false, persistSession: false } }
+);
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
   const cookieStore = await cookies();
@@ -22,7 +33,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
   }
 
   // Verify the target user exists as a registered participant
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile, error: profileError } = await supabaseAdmin
     .from('user_profiles')
     .select('id')
     .eq('id', userId)
@@ -32,7 +43,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
     return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('predictions')
     .select('id, user_id, match_id, goalsA, goalsB, goalsa, goalsb')
     .eq('user_id', userId);
