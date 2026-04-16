@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -25,8 +25,27 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  // Solo refresca la sesión para mantener las cookies actualizadas
-  await supabase.auth.getSession();
+  // Refresh session on every request
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Protect /admin — server-side check, cannot be bypassed from the client
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    if (!user) {
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('redirect', '/admin');
+      return NextResponse.redirect(loginUrl);
+    }
+
+    const { data: adminRecord } = await supabase
+      .from('admin_users')
+      .select('id')
+      .eq('id', user.id)
+      .single();
+
+    if (!adminRecord) {
+      return NextResponse.redirect(new URL('/predictions', request.url));
+    }
+  }
 
   return supabaseResponse;
 }
