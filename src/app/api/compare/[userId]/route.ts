@@ -45,7 +45,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
 
   const { data, error } = await supabaseAdmin
     .from('predictions')
-    .select('id, user_id, match_id, goalsA, goalsB, goalsa, goalsb')
+    .select('*')
     .eq('user_id', userId);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
