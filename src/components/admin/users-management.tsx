@@ -10,6 +10,7 @@ interface UserProfile {
   email: string;
   username: string | null;
   is_admin: boolean | null;
+  payment_status: 'paid' | 'pending' | null;
   created_at: string;
 }
 
@@ -55,6 +56,29 @@ export function UsersManagement() {
         ...profile,
         is_admin: admins?.some((a) => a.id === profile.id) || false,
       })) as (UserProfile & { is_admin: boolean })[];
+    },
+  });
+
+  const togglePayment = useMutation({
+    mutationFn: async ({ userId, currentStatus }: { userId: string; currentStatus: string | null }) => {
+      const newStatus = currentStatus === 'paid' ? 'pending' : 'paid';
+      const res = await fetch('/api/admin/toggle-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, status: newStatus }),
+      });
+      if (!res.ok) {
+        const { error } = await res.json();
+        throw new Error(error || 'Error al actualizar');
+      }
+      return newStatus;
+    },
+    onSuccess: (newStatus) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast.success(newStatus === 'paid' ? 'Marcado como pagado' : 'Marcado como pendiente');
+    },
+    onError: () => {
+      toast.error('Error al actualizar pago');
     },
   });
 
@@ -111,6 +135,7 @@ export function UsersManagement() {
               <th className="pb-3 font-medium">Usuario</th>
               <th className="pb-3 font-medium">ID</th>
               <th className="pb-3 font-medium">Fecha</th>
+              <th className="pb-3 font-medium">Pago</th>
               <th className="pb-3 font-medium">Admin</th>
             </tr>
           </thead>
@@ -130,7 +155,20 @@ export function UsersManagement() {
                 </td>
                 <td className="py-3">
                   <button
-                    onClick={() => toggleAdmin.mutate({ userId: user.id, isAdmin: user.is_admin })}
+                    onClick={() => togglePayment.mutate({ userId: user.id, currentStatus: user.payment_status })}
+                    className={`px-2 py-1 rounded-full text-xs font-semibold transition ${
+                      user.payment_status === 'paid'
+                        ? 'bg-green-600/20 text-green-500 hover:bg-green-600/30'
+                        : 'bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30'
+                    }`}
+                    title="Cambiar estado de pago"
+                  >
+                    {user.payment_status === 'paid' ? 'Pagado' : 'Pendiente'}
+                  </button>
+                </td>
+                <td className="py-3">
+                  <button
+                    onClick={() => toggleAdmin.mutate({ userId: user.id, isAdmin: user.is_admin ?? false })}
                     className={`p-2 rounded-lg transition ${
                       user.is_admin
                         ? 'bg-primary/20 text-primary hover:bg-primary/30'

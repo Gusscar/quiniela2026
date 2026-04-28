@@ -42,6 +42,7 @@ CREATE TABLE predictions (
 CREATE TABLE user_profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id),
   username VARCHAR(50) UNIQUE,
+  payment_status VARCHAR(20) DEFAULT 'pending' CHECK (payment_status IN ('paid', 'pending')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
