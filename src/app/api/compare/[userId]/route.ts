@@ -37,7 +37,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
     .from('user_profiles')
     .select('id')
     .eq('id', userId)
-    .single();
+    .maybeSingle();
 
   if (profileError || !profile) {
     return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });

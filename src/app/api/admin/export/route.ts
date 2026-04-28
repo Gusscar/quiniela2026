@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
   const { data: adminRow } = await supabaseAdmin
-    .from('admin_users').select('id').eq('id', user.id).single();
+    .from('admin_users').select('id').eq('id', user.id).maybeSingle();
   if (!adminRow) return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
 
   // Fetch all data

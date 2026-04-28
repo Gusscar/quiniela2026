@@ -59,7 +59,7 @@ export default function AdminPage() {
         .from('admin_users')
         .select('id')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (!data) {
         router.push('/predictions');

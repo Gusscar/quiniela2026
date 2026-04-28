@@ -40,7 +40,7 @@ export async function proxy(request: NextRequest) {
       .from('admin_users')
       .select('id')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     if (!adminRecord) {
       return NextResponse.redirect(new URL('/predictions', request.url));

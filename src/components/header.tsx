@@ -39,7 +39,7 @@ export default function Header() {
 
   useEffect(() => {
     if (!user) { setIsAdmin(false); return; }
-    supabase.from('admin_users').select('id').eq('id', user.id).single()
+    supabase.from('admin_users').select('id').eq('id', user.id).maybeSingle()
       .then(({ data }) => setIsAdmin(!!data));
   }, [user, setIsAdmin]);
 

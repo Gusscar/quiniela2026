@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     .from('admin_users')
     .select('id')
     .eq('id', user.id)
-    .single();
+    .maybeSingle();
 
   if (!adminCheck) return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
 

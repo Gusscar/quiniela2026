@@ -29,7 +29,7 @@ async function isAuthorized(req: NextRequest): Promise<boolean> {
     );
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
-    const { data } = await supabaseAdmin.from('admin_users').select('id').eq('id', user.id).single();
+    const { data } = await supabaseAdmin.from('admin_users').select('id').eq('id', user.id).maybeSingle();
     return !!data;
   } catch {
     return false;
