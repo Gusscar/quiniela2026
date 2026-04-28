@@ -1,4 +1,4 @@
-const CACHE_NAME = 'quiniela-v2';
+const CACHE_NAME = 'quiniela-v3';
 const PRECACHE = ['/', '/predictions', '/rankings', '/teams', '/rules'];
 
 // Activate immediately — no waiting
