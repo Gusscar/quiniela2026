@@ -30,6 +30,11 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
+  // Don't intercept cross-origin requests (e.g. flag images from flagcdn.com)
+  if (!request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
   // Network-first for HTML navigation — always get fresh pages
   if (request.mode === 'navigate') {
     event.respondWith(
