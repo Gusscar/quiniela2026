@@ -187,6 +187,14 @@ export function getLocalAnswer(raw: string, data: AppData): Answer {
     return { text: 'No hay partidos en vivo en este momento. ⏳' };
   }
 
+  /* ── Reglas generales ── */
+  if (/cuáles son las reglas|ver las reglas|reglas del juego|cómo funciona la quiniela|reglamento/.test(q)) {
+    return {
+      text: '📋 Reglas principales:\n\n⚽ 3 pts → Resultado Exacto\n✅ 2 pts → Tendencia (ganador/empate correcto)\n❌ 0 pts → Incorrecto\n\n⏰ Límite: 11 de junio 12:00 AM\n🚫 Pronósticos definitivos, sin cambios\n💰 Premios: 70% / 20% / 10%\n💳 Sin pago = no participa\n📊 10% para gastos operativos\n\n👉 Ve a /rules para el reglamento completo.',
+      suggestions: ['¿Cuántos puntos vale el marcador exacto?', '¿Cómo funciona la premiación?', '¿Cuál es la fecha límite?'],
+    };
+  }
+
   /* ── Ranking ── */
   if (/ranking|tabla|posici|quién va (primero|ganando|arriba)|clasificaci/.test(q)) {
     return {

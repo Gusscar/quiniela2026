@@ -29,7 +29,7 @@ const PAGE_SUGGESTIONS: Record<string, string[]> = {
   '/rankings': [
     '¿Cómo se calculan los puntos?',
     '¿Cuándo se actualiza el ranking?',
-    '¿Qué significa el sistema de puntos?',
+    '¿Cuáles son las reglas?',
   ],
   '/rules': [
     '¿Cuánto vale el marcador exacto?',
