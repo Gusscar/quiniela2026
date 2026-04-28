@@ -57,18 +57,13 @@ export default function PredictionsPage() {
     if (!loading && isAdmin) router.push('/admin');
   }, [user, loading, isAdmin, router]);
 
-  if (loading || !user || isAdmin) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    );
-  }
-
   const countdown = useCountdown(DEADLINE);
 
-  const predictionsMap = new Map<string, Prediction>();
-  predictions?.forEach((p) => predictionsMap.set(p.match_id, p));
+  const predictionsMap = useMemo(() => {
+    const map = new Map<string, Prediction>();
+    predictions?.forEach((p) => map.set(p.match_id, p));
+    return map;
+  }, [predictions]);
 
   const groupedMatches = matches ? groupMatchesByGroup(matches) : emptyGroups;
   const currentGroupMatches = groupedMatches[selectedGroup];
@@ -81,6 +76,14 @@ export default function PredictionsPage() {
     }
     return stats;
   }, [groupedMatches, predictionsMap]);
+
+  if (loading || !user || isAdmin) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
 
   const totalMatches = matches?.length ?? 72;
   const totalPredicted = predictions?.length ?? 0;
