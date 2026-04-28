@@ -2,9 +2,30 @@
 // Uso: node scripts/reset-simulation.mjs
 
 import { createClient } from '../node_modules/@supabase/supabase-js/dist/index.mjs';
+import { readFileSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-const SUPABASE_URL = 'https://favkmffvexbnrlcmbrpo.supabase.co';
-const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhdmttZmZ2ZXhibnJsY21icnBvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTcyMTE0MiwiZXhwIjoyMDkxMjk3MTQyfQ.j67dSQ1bGi5-NNyfbCXCnElXJ_9Bd0TbGkn6CUTibWo';
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+function loadEnv() {
+  try {
+    const env = readFileSync(resolve(__dirname, '../.env.local'), 'utf8');
+    for (const line of env.split('\n')) {
+      const [key, ...rest] = line.split('=');
+      if (key && rest.length) process.env[key.trim()] = rest.join('=').trim();
+    }
+  } catch { /* ya están en el entorno */ }
+}
+loadEnv();
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
+  console.error('❌ Faltan variables de entorno. Verifica .env.local');
+  process.exit(1);
+}
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
