@@ -30,10 +30,10 @@ export function getLocalAnswer(raw: string, data: AppData): Answer {
   }
 
   /* ── Sistema de puntos ── */
-  if (/punt(o|os|aje)|cuánto (vale|dan|gano|suma)|3 pt|marcador exact|sistem|puntua/.test(q)) {
+  if (/punt(o|os|aje)|cuánto (vale|dan|gano|suma)|3 pt|marcador exact|sistem|puntua|tendencia/.test(q)) {
     return {
-      text: '🏆 Sistema de puntos:\n\n⚽ 3 pts → Marcador exacto\n   (predices 2-1 y termina 2-1)\n\n✅ 1 pt → Aciertas el ganador o empate\n   (predices 2-1 y termina 3-1)\n\n❌ 0 pts → Resultado incorrecto',
-      suggestions: ['¿Cómo lleno mis predicciones?', '¿Cuándo se actualiza el ranking?'],
+      text: '🏆 Sistema de puntos:\n\n⚽ 3 pts → Resultado Exacto\n   (predices 2-1 y termina 2-1)\n\n✅ 2 pts → Tendencia\n   (aciertas ganador o empate, pero marcador diferente)\n\n❌ 0 pts → Resultado incorrecto',
+      suggestions: ['¿Cuál es la fecha límite?', '¿Cómo funciona la premiación?', '¿Cuándo se actualiza el ranking?'],
     };
   }
 
@@ -48,7 +48,37 @@ export function getLocalAnswer(raw: string, data: AppData): Answer {
   /* ── Editar predicción ── */
   if (/cambiar|editar|modificar|corregir|actualizar (mi )?predic/.test(q)) {
     return {
-      text: '✏️ Sí puedes editar tu predicción.\n\nEn la tarjeta del partido, si ya guardaste un marcador, verás el botón "Editar". Tócalo, cambia los números y guarda de nuevo.\n\n⚠️ Solo puedes editar mientras el partido NO haya iniciado.',
+      text: '🚫 Los pronósticos son definitivos.\n\nUna vez enviado, el pronóstico no se puede editar ni cambiar. Asegúrate antes de guardar.\n\n⏰ Fecha límite: 11 de junio a las 12:00 AM.',
+    };
+  }
+
+  /* ── Fecha límite ── */
+  if (/fecha.?límite|hasta cuándo|límite de|cuándo cierra|plazo|deadline/.test(q)) {
+    return {
+      text: '⏰ Fecha límite: 11 de junio a las 12:00 AM.\n\nDespués de esa hora no se aceptan nuevos pronósticos.\n\n🚫 Recuerda que los pronósticos enviados son definitivos — no se permiten ediciones.',
+      suggestions: ['¿Cómo lleno mis predicciones?', '¿Cuándo inicia el Mundial?'],
+    };
+  }
+
+  /* ── Premiación / premios ── */
+  if (/premi|premio|gana|cuánto (me |se )?paga|distribuc|pozo|90%|70%|1er lugar|primer lugar/.test(q)) {
+    return {
+      text: '💰 Premiación del pozo:\n\n🥇 1er Lugar: 70%\n🥈 2do Lugar: 20%\n🥉 3er Lugar: 10%\n\nEl sistema retiene el 10% para gastos operativos. El 90% restante se reparte entre los tres primeros.',
+      suggestions: ['¿Cómo se calcula el ranking?', '¿Cuál es la condición de pago?'],
+    };
+  }
+
+  /* ── Condición de pago ── */
+  if (/condici.n de pago|cancelar|pago|pagué|cómo pago|sin pagar/.test(q)) {
+    return {
+      text: '💳 Condición de pago:\n\nQuiniela sin cancelar, no juega. Debes completar el pago para que tus predicciones sean válidas y aparecer en el ranking oficial.\n\nContacta al administrador si tienes dudas sobre tu pago.',
+    };
+  }
+
+  /* ── Tiempo oficial / prórroga ── */
+  if (/prórroga|penalt|tiempo extra|90 minutos|tiempo oficial|added time|tiempo añadido/.test(q)) {
+    return {
+      text: "⏱️ Tiempo Oficial:\n\nLos pronósticos son válidos solo para los 90' reglamentarios, incluyendo el tiempo añadido.\n\n❌ No aplica para prórrogas ni tandas de penaltis.",
     };
   }
 
@@ -182,7 +212,7 @@ export function getLocalAnswer(raw: string, data: AppData): Answer {
   if (/ayuda|qué puedes|cómo funciona (esto|la app|la quiniel)|para qué sirve/.test(q)) {
     return {
       text: '⚽ Soy el árbitro asistente de la Quiniela Mundial 2026.\n\nPuedo ayudarte con:\n• 📝 Cómo llenar predicciones\n• 🏆 Sistema de puntos\n• 🌍 Información de equipos y grupos\n• 📅 Fechas y partidos\n• 🏟️ Navegación de la app',
-      suggestions: ['¿Cómo lleno mis predicciones?', '¿Cuántos puntos vale el marcador exacto?', '¿Qué equipos hay en el Grupo A?', '¿Cuándo inicia el Mundial?'],
+      suggestions: ['¿Cómo lleno mis predicciones?', '¿Cuántos puntos vale el marcador exacto?', '¿Cuál es la fecha límite?', '¿Cómo funciona la premiación?'],
     };
   }
 
