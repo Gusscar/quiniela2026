@@ -2,35 +2,36 @@
 
 import { useState } from 'react';
 
-const rules = [
+const scoring = [
   {
     pts: 3,
     color: 'bg-green-600 text-white',
-    title: 'Marcador exacto',
-    desc: 'Aciertas los goles exactos de ambos equipos.',
+    title: 'Resultado Exacto',
+    desc: 'Aciertas el marcador final idéntico.',
     example: 'Predices 2-1 → termina 2-1',
   },
   {
     pts: 2,
     color: 'bg-blue-600 text-white',
-    title: 'Ganador correcto',
-    desc: 'Aciertas el equipo ganador pero el marcador no.',
+    title: 'Tendencia',
+    desc: 'Aciertas al ganador o empate, pero con marcador diferente.',
     example: 'Predices 2-1 → termina 3-1',
-  },
-  {
-    pts: 1,
-    color: 'bg-yellow-500 text-white',
-    title: 'Empate sin marcador',
-    desc: 'Predices empate, hay empate, pero diferente marcador.',
-    example: 'Predices 1-1 → termina 0-0',
   },
   {
     pts: 0,
     color: 'bg-muted text-muted-foreground',
     title: 'Incorrecto',
-    desc: 'No aciertas el resultado del partido.',
+    desc: 'No aciertas el resultado.',
     example: '',
   },
+];
+
+const extraRules = [
+  { label: 'Fecha Límite', value: '11 de junio a las 12:00 AM' },
+  { label: 'Tiempo Oficial', value: "Solo 90' reglamentarios. No aplica prórrogas." },
+  { label: 'Sin Cambios', value: 'Pronóstico enviado es definitivo.' },
+  { label: 'Premiación', value: '1°: 70% · 2°: 20% · 3°: 10%' },
+  { label: 'Condición de Pago', value: 'Quiniela sin cancelar, no juega.' },
 ];
 
 export function RulesModal() {
@@ -60,7 +61,7 @@ export function RulesModal() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-5 pt-5 pb-3">
-              <h2 className="font-bold text-lg">Sistema de puntos</h2>
+              <h2 className="font-bold text-lg">Reglamento</h2>
               <button
                 onClick={() => setOpen(false)}
                 className="w-8 h-8 rounded-full hover:bg-secondary flex items-center justify-center transition"
@@ -71,21 +72,37 @@ export function RulesModal() {
               </button>
             </div>
 
-            <div className="px-5 pb-5 space-y-3">
-              {rules.map((r) => (
-                <div key={r.pts} className="flex items-start gap-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg shrink-0 ${r.color}`}>
-                    {r.pts}
+            <div className="px-5 pb-5 space-y-4">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Sistema de puntos</p>
+              <div className="space-y-3">
+                {scoring.map((r) => (
+                  <div key={r.pts} className="flex items-start gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg shrink-0 ${r.color}`}>
+                      {r.pts}
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">{r.title}</p>
+                      <p className="text-xs text-muted-foreground">{r.desc}</p>
+                      {r.example && (
+                        <p className="text-xs text-muted-foreground/60 mt-0.5 italic">{r.example}</p>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-sm">{r.title}</p>
-                    <p className="text-xs text-muted-foreground">{r.desc}</p>
-                    {r.example && (
-                      <p className="text-xs text-muted-foreground/60 mt-0.5 italic">{r.example}</p>
-                    )}
+                ))}
+              </div>
+
+              <div className="border-t border-border pt-4 space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Otras reglas</p>
+                {extraRules.map((r) => (
+                  <div key={r.label} className="flex gap-2 text-xs">
+                    <span className="font-medium shrink-0 text-foreground">{r.label}:</span>
+                    <span className="text-muted-foreground">{r.value}</span>
                   </div>
-                </div>
-              ))}
+                ))}
+                <p className="text-xs text-muted-foreground/70 pt-1 border-t border-border mt-2">
+                  El sistema retiene el <strong className="text-muted-foreground">10%</strong> para gastos operativos.
+                </p>
+              </div>
             </div>
           </div>
         </div>
