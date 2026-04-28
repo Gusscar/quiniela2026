@@ -2,8 +2,12 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { getRankings } from '@/lib/rankings';
+import { supabase } from '@/lib/supabase';
 import { Standing } from '@/types';
 import { RulesModal } from '@/components/rules-modal';
+
+// Monto de inscripción por jugador — ajustar según corresponda
+const ENTRY_FEE = 20;
 
 export default function RankingsPage() {
   const { data: rankings, isLoading } = useQuery<Standing[]>({
@@ -11,12 +15,44 @@ export default function RankingsPage() {
     queryFn: getRankings,
   });
 
+  const { data: paidCount } = useQuery({
+    queryKey: ['paid-count'],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('user_profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('payment_status', 'paid');
+      return count ?? 0;
+    },
+  });
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">Ranking</h1>
         <RulesModal />
       </div>
+
+      {/* Pozo estimado */}
+      {paidCount !== undefined && paidCount > 0 && (
+        <div className="mb-6 bg-card border border-border rounded-2xl px-5 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">💰</span>
+              <div>
+                <p className="text-sm text-muted-foreground">Pozo estimado</p>
+                <p className="text-2xl font-bold">${(paidCount * ENTRY_FEE * 0.9).toLocaleString()}</p>
+              </div>
+            </div>
+            <div className="text-right text-xs text-muted-foreground space-y-1">
+              <p>{paidCount} jugadores · ${ENTRY_FEE} c/u</p>
+              <p className="text-green-400">🥇 ${Math.round(paidCount * ENTRY_FEE * 0.9 * 0.7).toLocaleString()}</p>
+              <p className="text-gray-400">🥈 ${Math.round(paidCount * ENTRY_FEE * 0.9 * 0.2).toLocaleString()}</p>
+              <p className="text-amber-700">🥉 ${Math.round(paidCount * ENTRY_FEE * 0.9 * 0.1).toLocaleString()}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-card rounded-xl border border-border overflow-hidden">
         {isLoading ? (

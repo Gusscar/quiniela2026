@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
+import { supabase } from '@/lib/supabase';
 import { getMatches } from '@/lib/matches';
 import { getPredictions } from '@/lib/predictions';
 import { getRankings } from '@/lib/rankings';
@@ -27,6 +28,19 @@ export default function ProfilePage() {
   const { data: rankings } = useQuery({
     queryKey: ['rankings'],
     queryFn: getRankings,
+  });
+
+  const { data: profileData } = useQuery({
+    queryKey: ['my-profile', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('user_profiles')
+        .select('payment_status')
+        .eq('id', user!.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user,
   });
 
   useEffect(() => {
@@ -86,7 +100,7 @@ export default function ProfilePage() {
     <div className="max-w-2xl mx-auto px-4 py-8">
 
       {/* Avatar + name */}
-      <div className="flex items-center gap-4 mb-8">
+      <div className="flex items-center gap-4 mb-6">
         <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-2xl font-bold text-primary-foreground shrink-0">
           {initial}
         </div>
@@ -95,6 +109,29 @@ export default function ProfilePage() {
           <p className="text-sm text-muted-foreground">{user.email}</p>
         </div>
       </div>
+
+      {/* Payment status */}
+      {profileData !== undefined && (
+        <div className={`flex items-center gap-3 rounded-2xl px-5 py-4 mb-6 border ${
+          profileData?.payment_status === 'paid'
+            ? 'bg-green-500/10 border-green-500/30'
+            : 'bg-yellow-500/10 border-yellow-500/30'
+        }`}>
+          <span className="text-2xl">
+            {profileData?.payment_status === 'paid' ? '✅' : '⚠️'}
+          </span>
+          <div>
+            <p className={`font-semibold ${profileData?.payment_status === 'paid' ? 'text-green-400' : 'text-yellow-400'}`}>
+              {profileData?.payment_status === 'paid' ? 'Pago confirmado' : 'Pago pendiente'}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {profileData?.payment_status === 'paid'
+                ? 'Tu participación está activa en la quiniela.'
+                : 'Debes cancelar para participar en la quiniela.'}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Main stats grid */}
       <div className="grid grid-cols-2 gap-3 mb-6">
