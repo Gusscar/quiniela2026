@@ -67,7 +67,7 @@ export default function Home() {
             <div className="text-xs text-muted-foreground mt-1">Marcador<br/>exacto</div>
           </div>
           <div className="bg-card/80 border border-border rounded-2xl p-4 backdrop-blur">
-            <div className="text-3xl font-black text-accent">1 pt</div>
+            <div className="text-3xl font-black text-accent">2 pts</div>
             <div className="text-xs text-muted-foreground mt-1">Ganador<br/>correcto</div>
           </div>
           <div className="bg-card/80 border border-border rounded-2xl p-4 backdrop-blur">
