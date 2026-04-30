@@ -54,7 +54,7 @@ export default function RankingsPage() {
         </div>
       )}
 
-      <div className="bg-card rounded-xl border border-border overflow-hidden">
+      <div className="bg-card rounded-xl border border-border overflow-hidden overflow-x-auto">
         {isLoading ? (
           <div className="space-y-px">
             {[...Array(6)].map((_, i) => (
