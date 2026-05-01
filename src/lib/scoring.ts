@@ -6,7 +6,7 @@ export function calculatePoints(
   actualA: number | undefined,
   actualB: number | undefined
 ): ScoringResult {
-  if (predA === null || predB === null || actualA === undefined || actualB === undefined) {
+  if (predA === null || predB === null || actualA == null || actualB == null) {
     return 0;
   }
 
