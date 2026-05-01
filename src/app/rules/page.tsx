@@ -31,7 +31,12 @@ export default function RulesPage() {
     },
     {
       category: 'Premiación',
-      rule: '1er Lugar: 70%, 2do Lugar: 20%, 3er Lugar: 10%.',
+      rule: '1er Lugar: 60%, 2do Lugar: 20%, 3er Lugar: 10%. El 10% restante corresponde al sistema.',
+      points: '—',
+    },
+    {
+      category: 'Empate en Posición',
+      rule: 'Si dos o más jugadores terminan con el mismo puntaje en una posición premiada (1°, 2° o 3°), el premio correspondiente se dividirá en partes iguales entre ellos.',
       points: '—',
     },
     {
@@ -67,7 +72,7 @@ export default function RulesPage() {
       </div>
 
       <p className="text-xs text-muted-foreground text-center">
-        El sistema retiene el <strong>10%</strong> del pozo total para gastos operativos. El 90% restante se distribuye entre los ganadores según la premiación indicada.
+        El sistema retiene el <strong>10%</strong> del pozo total para gastos operativos. El <strong>90%</strong> restante se distribuye: <strong>60%</strong> al 1er lugar, <strong>20%</strong> al 2do lugar y <strong>10%</strong> al 3er lugar. En caso de empate en una posición premiada, el monto se divide en partes iguales.
       </p>
     </div>
   );
