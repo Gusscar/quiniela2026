@@ -18,14 +18,9 @@ export function calculatePoints(
   const predResult = Math.sign(predA - predB);   // -1 / 0 / 1
   const actualResult = Math.sign(actualA - actualB);
 
-  // Correct winner (non-draw), wrong score → 2 pts
-  if (predResult !== 0 && predResult === actualResult) {
+  // Correct tendency (winner or draw), wrong score → 2 pts
+  if (predResult === actualResult) {
     return 2;
-  }
-
-  // Predicted draw + actual draw, wrong exact score → 1 pt
-  if (predResult === 0 && actualResult === 0) {
-    return 1;
   }
 
   return 0;

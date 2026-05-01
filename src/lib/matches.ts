@@ -43,5 +43,7 @@ export function groupMatchesByGroup(matches: Match[]): Record<Group, Match[]> {
 }
 
 export function isMatchLocked(match: Match): boolean {
-  return match.status !== 'pending' && match.status !== 'scheduled';
+  if (match.status !== 'pending' && match.status !== 'scheduled') return true;
+  // Also lock if match datetime has already passed (in case DB status hasn't been synced yet)
+  return new Date() >= new Date(match.datetime);
 }

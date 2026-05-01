@@ -14,8 +14,8 @@ const scoring = [
     pts: 2,
     color: 'bg-blue-600 text-white',
     title: 'Tendencia',
-    desc: 'Aciertas al ganador o empate, pero con marcador diferente.',
-    example: 'Predices 2-1 → termina 3-1',
+    desc: 'Aciertas el ganador o que termina en empate, pero con marcador diferente.',
+    example: 'Predices 2-1 → termina 3-1 · Predices 1-1 → termina 0-0',
   },
   {
     pts: 0,
