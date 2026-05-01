@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 
 const ENTRY_FEE = 20; // pesos por participante
 const SYSTEM_PCT = 0.10;
-const PRIZE_PCTS = [0.50, 0.30, 0.20]; // 1°, 2°, 3° del bote neto
+const PRIZE_PCTS = [0.60, 0.20, 0.10]; // 1°, 2°, 3° del total
 const PRIZE_LABELS = ['🥇 1er lugar', '🥈 2do lugar', '🥉 3er lugar'];
 
 interface Stats {
@@ -93,7 +93,6 @@ export function AdminStats() {
 
   const total = (stats?.paidUsers || 0) * ENTRY_FEE;
   const systemCut = Math.round(total * SYSTEM_PCT);
-  const prizePool = total - systemCut;
 
   return (
     <div className="space-y-4 mb-8">
@@ -160,12 +159,12 @@ export function AdminStats() {
             >
               <p className="text-xs text-muted-foreground mb-1">
                 {PRIZE_LABELS[i]}{' '}
-                <span className="opacity-60">({Math.round(pct * (1 - SYSTEM_PCT) * 100)}%)</span>
+                <span className="opacity-60">({Math.round(pct * 100)}%)</span>
               </p>
               <p className={`text-xl font-bold ${
                 i === 0 ? 'text-yellow-400' : i === 1 ? 'text-slate-300' : 'text-amber-600'
               }`}>
-                {fmt(Math.round(prizePool * pct))}
+                {fmt(Math.round(total * pct))}
               </p>
             </div>
           ))}
