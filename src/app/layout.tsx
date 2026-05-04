@@ -23,8 +23,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://quiniela2026-one.vercel.app"),
   title: "Quiniela Mundial 2026",
-  description: "Participa en la quiniela del Mundial de fútbol y compite por el primer lugar",
+  description: "Participa en la quiniela del Mundial de fútbol 2026 y compite por el primer lugar",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -34,6 +35,17 @@ export const metadata: Metadata = {
   icons: {
     apple: "/icon-192.png",
     icon: "/icon-192.png",
+  },
+  openGraph: {
+    title: "Quiniela Mundial 2026",
+    description: "Participa en la quiniela del Mundial de fútbol 2026 y compite por el primer lugar",
+    type: "website",
+    locale: "es_ES",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Quiniela Mundial 2026",
+    description: "Participa en la quiniela del Mundial de fútbol 2026 y compite por el primer lugar",
   },
 };
 
