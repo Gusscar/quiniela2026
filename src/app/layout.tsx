@@ -23,7 +23,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://quiniela2026-one.vercel.app"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://quiniela2026-one.vercel.app"),
   title: "Quiniela Mundial 2026",
   description: "Participa en la quiniela del Mundial de fútbol 2026 y compite por el primer lugar",
   manifest: "/manifest.json",
