@@ -213,6 +213,15 @@ export function FloatingAssistant() {
               </svg>
             </button>
           </div>
+
+          {/* Contact footer */}
+          <div className="px-3 py-2 text-center border-t border-border shrink-0" style={{ background: '#0a1628' }}>
+            <p className="text-xs text-muted-foreground">
+              ¿Dudas? Contactanos{' '}
+              <a href="tel:3114720601" className="text-primary font-medium hover:underline">3114720601</a>
+              {' · '}Gustavo Carmona
+            </p>
+          </div>
         </div>
       )}
     </>
