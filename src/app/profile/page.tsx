@@ -129,6 +129,14 @@ export default function ProfilePage() {
                 ? 'Tu participación está activa en la quiniela.'
                 : 'Debes cancelar para participar en la quiniela.'}
             </p>
+            {profileData?.payment_status !== 'paid' && (
+              <p className="text-xs mt-1.5">
+                <span className="text-muted-foreground">¿Dudas? Contacta a </span>
+                <span className="font-semibold text-yellow-400">Gustavo Carmona</span>
+                <span className="text-muted-foreground"> · </span>
+                <a href="tel:3114720601" className="font-bold text-yellow-300 hover:underline">3114720601</a>
+              </p>
+            )}
           </div>
         </div>
       )}
