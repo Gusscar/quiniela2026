@@ -10,7 +10,7 @@ import { Celebration } from '@/components/celebration';
 
 const schema = yup.object({
   email: yup.string().email('Email inválido').required('Email requerido'),
-  username: yup.string().min(3, 'Mínimo 3 caracteres').max(20, 'Máximo 20 caracteres').required('Nombre de usuario requerido'),
+  username: yup.string().min(3, 'Mínimo 3 caracteres').max(30, 'Máximo 30 caracteres').matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9_ ]+$/, 'Solo letras, números, espacios y _').required('Nombre de usuario requerido'),
   password: yup.string().min(8, 'Mínimo 8 caracteres').required('Contraseña requerida'),
   confirmPassword: yup.string()
     .oneOf([yup.ref('password')], 'Las contraseñas deben coincidir')

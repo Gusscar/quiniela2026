@@ -70,15 +70,16 @@ export async function POST(request: NextRequest) {
     if (typeof password !== 'string' || password.length < 8 || password.length > 128) {
       return NextResponse.json({ error: 'La contraseña debe tener entre 8 y 128 caracteres' }, { status: 400 });
     }
-    if (typeof username !== 'string' || !/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
-      return NextResponse.json({ error: 'Usuario: 3-30 caracteres, solo letras, números y _' }, { status: 400 });
+    const trimmedUsername = username.trim();
+    if (typeof username !== 'string' || trimmedUsername.length < 3 || trimmedUsername.length > 30 || !/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9_ ]+$/.test(trimmedUsername)) {
+      return NextResponse.json({ error: 'Usuario: 3-30 caracteres, solo letras, números, espacios y _' }, { status: 400 });
     }
 
     // Crear usuario sin requerir confirmación de email
     const { data: userData, error: userError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      user_metadata: { username },
+      user_metadata: { username: trimmedUsername },
       email_confirm: true,
     });
 
@@ -93,12 +94,12 @@ export async function POST(request: NextRequest) {
     if (userData.user) {
       await supabaseAdmin.from('user_profiles').insert({
         id: userData.user.id,
-        username,
+        username: trimmedUsername,
       });
     }
 
     // Notificación Telegram
-    await notifyTelegram(email, username);
+    await notifyTelegram(email, trimmedUsername);
 
     return NextResponse.json({ success: true });
   } catch {
