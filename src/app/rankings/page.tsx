@@ -6,8 +6,8 @@ import { supabase } from '@/lib/supabase';
 import { Standing } from '@/types';
 import { RulesModal } from '@/components/rules-modal';
 
-// Monto de inscripción por jugador — ajustar según corresponda
-const ENTRY_FEE = 20;
+// Monto de inscripción por jugador en pesos colombianos
+const ENTRY_FEE = 20000;
 
 export default function RankingsPage() {
   const { data: rankings, isLoading } = useQuery<Standing[]>({
@@ -41,14 +41,14 @@ export default function RankingsPage() {
               <span className="text-2xl">💰</span>
               <div>
                 <p className="text-sm text-muted-foreground">Pozo estimado</p>
-                <p className="text-2xl font-bold">${(paidCount * ENTRY_FEE * 0.9).toLocaleString()}</p>
+                <p className="text-2xl font-bold">${(paidCount * ENTRY_FEE * 0.9).toLocaleString('es-CO')}</p>
               </div>
             </div>
             <div className="text-right text-xs text-muted-foreground space-y-1">
-              <p>{paidCount} jugadores · ${ENTRY_FEE} c/u</p>
-              <p className="text-green-400">🥇 ${Math.round(paidCount * ENTRY_FEE * 0.9 * 0.7).toLocaleString()}</p>
-              <p className="text-gray-400">🥈 ${Math.round(paidCount * ENTRY_FEE * 0.9 * 0.2).toLocaleString()}</p>
-              <p className="text-amber-700">🥉 ${Math.round(paidCount * ENTRY_FEE * 0.9 * 0.1).toLocaleString()}</p>
+              <p>{paidCount} jugadores · ${ENTRY_FEE.toLocaleString('es-CO')} c/u</p>
+              <p className="text-green-400">🥇 ${Math.round(paidCount * ENTRY_FEE * 0.9 * 0.7).toLocaleString('es-CO')}</p>
+              <p className="text-gray-400">🥈 ${Math.round(paidCount * ENTRY_FEE * 0.9 * 0.2).toLocaleString('es-CO')}</p>
+              <p className="text-amber-700">🥉 ${Math.round(paidCount * ENTRY_FEE * 0.9 * 0.1).toLocaleString('es-CO')}</p>
             </div>
           </div>
         </div>
