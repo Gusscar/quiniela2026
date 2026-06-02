@@ -3,17 +3,13 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 
-// Service role used server-side only — key never reaches the client.
-// Needed to read another user's predictions regardless of RLS.
-// The RLS policy "Authenticated read finished predictions" covers client-side
-// access, but the compare page intentionally shows all match statuses.
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
-
 export async function GET(req: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
+  // Service role used server-side only — key never reaches the client.
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
   const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

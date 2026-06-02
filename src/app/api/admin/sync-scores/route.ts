@@ -5,11 +5,13 @@ import { cookies } from 'next/headers';
 import { fetchWCMatches, mapStatus, normalizeName, getNameVariants } from '@/lib/football-api';
 import { sendPushToAll } from '@/lib/push';
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+function makeAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+}
 
 async function isAuthorized(req: NextRequest): Promise<boolean> {
   // Allow Vercel cron via Authorization: Bearer <CRON_SECRET>
@@ -29,7 +31,7 @@ async function isAuthorized(req: NextRequest): Promise<boolean> {
     );
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
-    const { data } = await supabaseAdmin.from('admin_users').select('id').eq('id', user.id).maybeSingle();
+    const { data } = await makeAdminClient().from('admin_users').select('id').eq('id', user.id).maybeSingle();
     return !!data;
   } catch {
     return false;
@@ -46,7 +48,7 @@ export async function POST(req: NextRequest) {
   }
 
   // 1. Fetch DB teams and build name → id map
-  const { data: teams, error: teamsErr } = await supabaseAdmin.from('teams').select('id, name');
+  const { data: teams, error: teamsErr } = await makeAdminClient().from('teams').select('id, name');
   if (teamsErr) return NextResponse.json({ error: teamsErr.message }, { status: 500 });
 
   // normalized_name → team_id
@@ -56,7 +58,7 @@ export async function POST(req: NextRequest) {
   }
 
   // 2. Fetch DB matches
-  const { data: dbMatches, error: matchesErr } = await supabaseAdmin
+  const { data: dbMatches, error: matchesErr } = await makeAdminClient()
     .from('matches')
     .select('id, teama_id, teamb_id, datetime, status, scorea, scoreb');
   if (matchesErr) return NextResponse.json({ error: matchesErr.message }, { status: 500 });
@@ -155,7 +157,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const { error: updateErr } = await supabaseAdmin
+    const { error: updateErr } = await makeAdminClient()
       .from('matches')
       .update({ status: newStatus, scorea, scoreb })
       .eq('id', dbMatch.id);
