@@ -5,13 +5,12 @@ import { cookies } from 'next/headers';
 import * as XLSX from 'xlsx';
 import { calculatePoints } from '@/lib/scoring';
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
-
 export async function GET(req: NextRequest) {
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
   // Auth + admin check
   const cookieStore = await cookies();
   const supabase = createServerClient(
