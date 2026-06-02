@@ -77,8 +77,8 @@ export function UsersManagement() {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast.success(newStatus === 'paid' ? 'Marcado como pagado' : 'Marcado como pendiente');
     },
-    onError: () => {
-      toast.error('Error al actualizar pago');
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : 'Error al actualizar pago');
     },
   });
 

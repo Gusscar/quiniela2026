@@ -1,6 +1,13 @@
 import { createServerClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 import { NextResponse, type NextRequest } from 'next/server';
 import { rateLimit } from '@/lib/rate-limit';
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { autoRefreshToken: false, persistSession: false } }
+);
 
 export async function POST(request: NextRequest) {
   // Rate limit: 10 attempts per IP per 15 minutes
@@ -44,10 +51,37 @@ export async function POST(request: NextRequest) {
     }
   );
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 401 });
+  }
+
+  // After the first match cutoff (1 hour before), only paid users can log in
+  const { data: firstMatch } = await supabaseAdmin
+    .from('matches')
+    .select('datetime')
+    .order('datetime', { ascending: true })
+    .limit(1)
+    .single();
+
+  if (firstMatch) {
+    const cutoff = new Date(firstMatch.datetime).getTime() - 60 * 60 * 1000;
+    if (Date.now() >= cutoff) {
+      const { data: profile } = await supabaseAdmin
+        .from('user_profiles')
+        .select('payment_status')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (profile?.payment_status !== 'paid') {
+        await supabase.auth.signOut();
+        return NextResponse.json(
+          { error: 'El torneo ya comenzó. Solo participantes con pago confirmado pueden ingresar.' },
+          { status: 403 }
+        );
+      }
+    }
   }
 
   return response;

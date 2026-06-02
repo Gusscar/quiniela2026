@@ -12,7 +12,8 @@ const supabaseAdmin = createClient(
 export async function GET() {
   const { data: predictions, error: predictionsError } = await supabaseAdmin
     .from('predictions')
-    .select('*, matches(*)');
+    .select('*, matches(*)')
+    .limit(100000);
 
   if (predictionsError) {
     return NextResponse.json({ error: predictionsError.message }, { status: 500 });
