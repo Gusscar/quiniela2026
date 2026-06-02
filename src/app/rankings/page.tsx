@@ -34,25 +34,29 @@ export default function RankingsPage() {
       </div>
 
       {/* Pozo estimado */}
-      {paidCount !== undefined && paidCount > 0 && (
-        <div className="mb-6 bg-card border border-border rounded-2xl px-5 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">💰</span>
-              <div>
-                <p className="text-sm text-muted-foreground">Pozo estimado</p>
-                <p className="text-2xl font-bold">${(paidCount * ENTRY_FEE * 0.9).toLocaleString('es-CO')}</p>
+      {paidCount !== undefined && paidCount > 0 && (() => {
+        const total = paidCount * ENTRY_FEE;
+        const fmt = (n: number) => `$${Math.round(n).toLocaleString('es-CO')}`;
+        return (
+          <div className="mb-6 bg-card border border-border rounded-2xl px-5 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">💰</span>
+                <div>
+                  <p className="text-sm text-muted-foreground">Pozo estimado</p>
+                  <p className="text-2xl font-bold">{fmt(total * 0.9)}</p>
+                </div>
+              </div>
+              <div className="text-right text-xs text-muted-foreground space-y-1">
+                <p>{paidCount} jugadores · {fmt(ENTRY_FEE)} c/u</p>
+                <p className="text-green-400">🥇 {fmt(total * 0.60)}</p>
+                <p className="text-gray-400">🥈 {fmt(total * 0.20)}</p>
+                <p className="text-amber-700">🥉 {fmt(total * 0.10)}</p>
               </div>
             </div>
-            <div className="text-right text-xs text-muted-foreground space-y-1">
-              <p>{paidCount} jugadores · ${ENTRY_FEE.toLocaleString('es-CO')} c/u</p>
-              <p className="text-green-400">🥇 ${Math.round(paidCount * ENTRY_FEE * 0.9 * 0.7).toLocaleString('es-CO')}</p>
-              <p className="text-gray-400">🥈 ${Math.round(paidCount * ENTRY_FEE * 0.9 * 0.2).toLocaleString('es-CO')}</p>
-              <p className="text-amber-700">🥉 ${Math.round(paidCount * ENTRY_FEE * 0.9 * 0.1).toLocaleString('es-CO')}</p>
-            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       <div className="bg-card rounded-xl border border-border overflow-hidden overflow-x-auto">
         {isLoading ? (
