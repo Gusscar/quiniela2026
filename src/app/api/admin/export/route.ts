@@ -25,18 +25,31 @@ export async function GET(req: NextRequest) {
     .from('admin_users').select('id').eq('id', user.id).maybeSingle();
   if (!adminRow) return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
 
-  // Fetch all data
-  const [matchesRes, teamsRes, profilesRes, predsRes] = await Promise.all([
+  // Fetch all data (predictions paginated to bypass 1000-row server limit)
+  const [matchesRes, teamsRes, profilesRes] = await Promise.all([
     supabaseAdmin.from('matches').select('*').order('group_letter').order('datetime'),
     supabaseAdmin.from('teams').select('*'),
     supabaseAdmin.from('user_profiles').select('*').order('username'),
-    supabaseAdmin.from('predictions').select('*'),
   ]);
+
+  const PAGE_SIZE = 1000;
+  const preds: any[] = [];
+  let from = 0;
+  while (true) {
+    const { data, error } = await supabaseAdmin
+      .from('predictions')
+      .select('*')
+      .range(from, from + PAGE_SIZE - 1);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!data || data.length === 0) break;
+    preds.push(...data);
+    if (data.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
+  }
 
   const matches = matchesRes.data ?? [];
   const teams = teamsRes.data ?? [];
   const profiles = profilesRes.data ?? [];
-  const preds = predsRes.data ?? [];
 
   const teamsById = new Map(teams.map((t: any) => [t.id, t]));
 
