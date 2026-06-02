@@ -9,13 +9,20 @@ export async function GET() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { auth: { autoRefreshToken: false, persistSession: false } }
   );
-  const { data: predictions, error: predictionsError } = await supabaseAdmin
-    .from('predictions')
-    .select('*, matches(*)')
-    .limit(100000);
-
-  if (predictionsError) {
-    return NextResponse.json({ error: predictionsError.message }, { status: 500 });
+  // Paginate to bypass Supabase's server-side max_rows limit of 1000
+  const PAGE_SIZE = 1000;
+  const predictions: any[] = [];
+  let from = 0;
+  while (true) {
+    const { data, error } = await supabaseAdmin
+      .from('predictions')
+      .select('*, matches(*)')
+      .range(from, from + PAGE_SIZE - 1);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!data || data.length === 0) break;
+    predictions.push(...data);
+    if (data.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
   }
 
   const { data: profiles, error: profilesError } = await supabaseAdmin
@@ -28,7 +35,7 @@ export async function GET() {
 
   const userPoints: Record<string, { points: number; count: number }> = {};
 
-  predictions?.forEach((pred) => {
+  predictions.forEach((pred) => {
     if (!userPoints[pred.user_id]) {
       userPoints[pred.user_id] = { points: 0, count: 0 };
     }
