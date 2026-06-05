@@ -36,7 +36,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No puedes eliminarte a ti mismo' }, { status: 400 });
   }
 
-  // Delete auth user (cascades to user_profiles via DB foreign key)
+  // Delete dependent rows first (FKs don't have ON DELETE CASCADE)
+  const { error: predError } = await supabaseAdmin
+    .from('predictions')
+    .delete()
+    .eq('user_id', userId);
+  if (predError) return NextResponse.json({ error: predError.message }, { status: 500 });
+
+  const { error: adminRoleError } = await supabaseAdmin
+    .from('admin_users')
+    .delete()
+    .eq('id', userId);
+  if (adminRoleError) return NextResponse.json({ error: adminRoleError.message }, { status: 500 });
+
+  const { error: profileError } = await supabaseAdmin
+    .from('user_profiles')
+    .delete()
+    .eq('id', userId);
+  if (profileError) return NextResponse.json({ error: profileError.message }, { status: 500 });
+
+  // Now delete the auth user
   const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
