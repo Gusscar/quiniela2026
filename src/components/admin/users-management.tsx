@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -12,6 +12,35 @@ interface UserProfile {
   is_admin: boolean | null;
   payment_status: 'paid' | 'pending' | null;
   created_at: string;
+}
+
+function ConfirmDeleteModal({ username, onConfirm, onCancel, loading }: { username: string; onConfirm: () => void; onCancel: () => void; loading: boolean }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+      <div className="bg-card border border-border rounded-xl p-6 max-w-sm w-full mx-4 shadow-xl">
+        <h3 className="text-lg font-semibold mb-2">Eliminar usuario</h3>
+        <p className="text-muted-foreground text-sm mb-6">
+          ¿Seguro que quieres eliminar a <span className="text-foreground font-medium">{username}</span>? Esta acción es irreversible y borrará todas sus predicciones.
+        </p>
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onCancel}
+            disabled={loading}
+            className="px-4 py-2 rounded-lg bg-secondary hover:bg-muted text-sm transition disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition disabled:opacity-50"
+          >
+            {loading ? 'Eliminando...' : 'Eliminar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function Icon({ name, className = 'w-4 h-4' }: { name: string; className?: string }) {
@@ -31,12 +60,18 @@ function Icon({ name, className = 'w-4 h-4' }: { name: string; className?: strin
         <path d="M21 2v6h-6" /><path d="M3 12a9 9 0 0 1 15-6.7L21 8" /><path d="M3 22v-6h6" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
       </svg>
     ),
+    trash: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4h6v2" />
+      </svg>
+    ),
   };
   return icons[name] || null;
 }
 
 export function UsersManagement() {
   const queryClient = useQueryClient();
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; username: string } | null>(null);
 
   const { data: users, isLoading, refetch } = useQuery({
     queryKey: ['admin-users'],
@@ -103,6 +138,29 @@ export function UsersManagement() {
     },
   });
 
+  const deleteUser = useMutation({
+    mutationFn: async (userId: string) => {
+      const res = await fetch('/api/admin/delete-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+      if (!res.ok) {
+        const { error } = await res.json();
+        throw new Error(error || 'Error al eliminar');
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast.success('Usuario eliminado');
+      setConfirmDelete(null);
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : 'Error al eliminar');
+      setConfirmDelete(null);
+    },
+  });
+
   if (isLoading) {
     return (
       <div className="bg-card rounded-xl border border-border p-6">
@@ -117,83 +175,104 @@ export function UsersManagement() {
   }
 
   return (
-    <div className="bg-card rounded-xl border border-border p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Usuarios</h2>
-        <button
-          onClick={() => refetch()}
-          className="p-2 hover:bg-secondary rounded-lg transition"
-        >
-          <Icon name="refresh" />
-        </button>
-      </div>
+    <>
+      {confirmDelete && (
+        <ConfirmDeleteModal
+          username={confirmDelete.username}
+          loading={deleteUser.isPending}
+          onConfirm={() => deleteUser.mutate(confirmDelete.id)}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
 
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="text-left text-sm text-muted-foreground border-b border-border">
-              <th className="pb-3 font-medium">Usuario</th>
-              <th className="pb-3 font-medium">ID</th>
-              <th className="pb-3 font-medium">Fecha</th>
-              <th className="pb-3 font-medium">Pago</th>
-              <th className="pb-3 font-medium">Admin</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {users?.map((user) => (
-              <tr key={user.id} className="hover:bg-secondary/50">
-                <td className="py-3">
-                  <span className="font-medium">
-                    {user.username || 'Sin nombre'}
-                  </span>
-                </td>
-                <td className="py-3 text-muted-foreground text-sm">
-                  {user.id.slice(0, 8)}...
-                </td>
-                <td className="py-3 text-muted-foreground text-sm">
-                  {new Date(user.created_at).toLocaleDateString('es-ES')}
-                </td>
-                <td className="py-3">
-                  <button
-                    onClick={() => togglePayment.mutate({ userId: user.id, currentStatus: user.payment_status })}
-                    className={`px-2 py-1 rounded-full text-xs font-semibold transition ${
-                      user.payment_status === 'paid'
-                        ? 'bg-green-600/20 text-green-500 hover:bg-green-600/30'
-                        : 'bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30'
-                    }`}
-                    title="Cambiar estado de pago"
-                  >
-                    {user.payment_status === 'paid' ? 'Pagado' : 'Pendiente'}
-                  </button>
-                </td>
-                <td className="py-3">
-                  <button
-                    onClick={() => toggleAdmin.mutate({ userId: user.id, isAdmin: user.is_admin ?? false })}
-                    className={`p-2 rounded-lg transition ${
-                      user.is_admin
-                        ? 'bg-primary/20 text-primary hover:bg-primary/30'
-                        : 'bg-secondary hover:bg-muted'
-                    }`}
-                    title={user.is_admin ? 'Remover admin' : 'Hacer admin'}
-                  >
-                    {user.is_admin ? (
-                      <Icon name="shield" />
-                    ) : (
-                      <Icon name="shielnoff" />
-                    )}
-                  </button>
-                </td>
+      <div className="bg-card rounded-xl border border-border p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Usuarios</h2>
+          <button
+            onClick={() => refetch()}
+            className="p-2 hover:bg-secondary rounded-lg transition"
+          >
+            <Icon name="refresh" />
+          </button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="text-left text-sm text-muted-foreground border-b border-border">
+                <th className="pb-3 font-medium">Usuario</th>
+                <th className="pb-3 font-medium">ID</th>
+                <th className="pb-3 font-medium">Fecha</th>
+                <th className="pb-3 font-medium">Pago</th>
+                <th className="pb-3 font-medium">Admin</th>
+                <th className="pb-3 font-medium"></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {users?.map((user) => (
+                <tr key={user.id} className="hover:bg-secondary/50">
+                  <td className="py-3">
+                    <span className="font-medium">
+                      {user.username || 'Sin nombre'}
+                    </span>
+                  </td>
+                  <td className="py-3 text-muted-foreground text-sm">
+                    {user.id.slice(0, 8)}...
+                  </td>
+                  <td className="py-3 text-muted-foreground text-sm">
+                    {new Date(user.created_at).toLocaleDateString('es-ES')}
+                  </td>
+                  <td className="py-3">
+                    <button
+                      onClick={() => togglePayment.mutate({ userId: user.id, currentStatus: user.payment_status })}
+                      className={`px-2 py-1 rounded-full text-xs font-semibold transition ${
+                        user.payment_status === 'paid'
+                          ? 'bg-green-600/20 text-green-500 hover:bg-green-600/30'
+                          : 'bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30'
+                      }`}
+                      title="Cambiar estado de pago"
+                    >
+                      {user.payment_status === 'paid' ? 'Pagado' : 'Pendiente'}
+                    </button>
+                  </td>
+                  <td className="py-3">
+                    <button
+                      onClick={() => toggleAdmin.mutate({ userId: user.id, isAdmin: user.is_admin ?? false })}
+                      className={`p-2 rounded-lg transition ${
+                        user.is_admin
+                          ? 'bg-primary/20 text-primary hover:bg-primary/30'
+                          : 'bg-secondary hover:bg-muted'
+                      }`}
+                      title={user.is_admin ? 'Remover admin' : 'Hacer admin'}
+                    >
+                      {user.is_admin ? (
+                        <Icon name="shield" />
+                      ) : (
+                        <Icon name="shielnoff" />
+                      )}
+                    </button>
+                  </td>
+                  <td className="py-3">
+                    <button
+                      onClick={() => setConfirmDelete({ id: user.id, username: user.username || 'Sin nombre' })}
+                      className="p-2 rounded-lg bg-secondary hover:bg-red-600/20 hover:text-red-500 transition"
+                      title="Eliminar usuario"
+                    >
+                      <Icon name="trash" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-        {(!users || users.length === 0) && (
-          <div className="text-center py-8 text-muted-foreground">
-            No hay usuarios registrados
-          </div>
-        )}
+          {(!users || users.length === 0) && (
+            <div className="text-center py-8 text-muted-foreground">
+              No hay usuarios registrados
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
