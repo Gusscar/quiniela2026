@@ -13,12 +13,21 @@ export default function ResetPasswordPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Supabase sets the session automatically from the URL hash on recovery links
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
+    // Check for existing session (set by Supabase from the recovery link hash)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setReady(true);
+        return;
+      }
+    });
+
+    // Also listen for PASSWORD_RECOVERY event as fallback
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
         setReady(true);
       }
     });
+
     return () => subscription.unsubscribe();
   }, []);
 
@@ -62,8 +71,9 @@ export default function ResetPasswordPage() {
 
         <div className="bg-card/90 backdrop-blur rounded-2xl p-6 border border-border shadow-xl">
           {!ready ? (
-            <div className="text-center py-4 text-muted-foreground text-sm">
-              Verificando enlace de recuperación...
+            <div className="text-center py-8 space-y-3">
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className="text-muted-foreground text-sm">Verificando enlace...</p>
             </div>
           ) : (
             <>
