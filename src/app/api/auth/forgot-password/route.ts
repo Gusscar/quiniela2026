@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse, type NextRequest } from 'next/server';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://quiniela2026-one.vercel.app';
+
 export async function POST(req: NextRequest) {
   const { email } = await req.json();
 
@@ -15,7 +17,7 @@ export async function POST(req: NextRequest) {
   );
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/reset-password`,
+    redirectTo: `${SITE_URL}/reset-password`,
   });
 
   // Always return success to avoid email enumeration
