@@ -22,6 +22,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const registered = searchParams.get('registered');
   const confirm = searchParams.get('confirm');
+  const reset = searchParams.get('reset');
 
   const { register: registerForm, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: yupResolver(schema),
@@ -91,6 +92,12 @@ function LoginForm() {
           </div>
         )}
 
+        {reset && (
+          <div className="bg-primary/20 text-primary rounded-xl p-3 mb-4 text-sm">
+            ✅ Contraseña actualizada. Ya puedes iniciar sesión.
+          </div>
+        )}
+
         {error && (
           <div className="bg-destructive/20 text-destructive rounded-xl p-3 mb-4 text-sm">
             {error}
@@ -110,7 +117,12 @@ function LoginForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1.5">Contraseña</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-sm font-medium">Contraseña</label>
+              <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
             <div className="relative">
               <input
                 {...registerForm('password')}
