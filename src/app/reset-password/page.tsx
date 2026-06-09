@@ -15,10 +15,11 @@ export default function ResetPasswordPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check for error in URL hash (e.g. expired link)
     const hash = window.location.hash;
-    if (hash.includes('error=')) {
-      const params = new URLSearchParams(hash.replace('#', ''));
+    const params = new URLSearchParams(hash.replace('#', ''));
+
+    // Check for error in URL hash (e.g. expired link)
+    if (params.get('error')) {
       const errorCode = params.get('error_code');
       if (errorCode === 'otp_expired' || params.get('error') === 'access_denied') {
         setLinkExpired(true);
@@ -26,20 +27,62 @@ export default function ResetPasswordPage() {
       }
     }
 
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+    const type = params.get('type');
+
+    if (accessToken && type === 'recovery') {
+      // First check if we already have a valid session (e.g. page reload after setSession)
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          setReady(true);
+          return;
+        }
+        // No existing session — exchange the hash tokens
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken || '',
+        }).then(({ error }) => {
+          if (error) {
+            setLinkExpired(true);
+          } else {
+            // Clear hash so a reload doesn't try to re-use the spent token
+            window.history.replaceState(null, '', window.location.pathname);
+            setReady(true);
+          }
+        });
+      });
+      return;
+    }
+
+    // Fallback: check existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setReady(true);
         return;
       }
-    });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
-        setReady(true);
-      }
-    });
+      // Last resort: listen for auth events
+      let cleanedUp = false;
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
+          setReady(true);
+          if (!cleanedUp) { cleanedUp = true; subscription.unsubscribe(); }
+        }
+      });
 
-    return () => subscription.unsubscribe();
+      // If no event fires within 5s, treat as expired/invalid
+      const timeout = setTimeout(() => {
+        setLinkExpired(true);
+        if (!cleanedUp) { cleanedUp = true; subscription.unsubscribe(); }
+      }, 5000);
+
+      return () => {
+        cleanedUp = true;
+        clearTimeout(timeout);
+        subscription.unsubscribe();
+      };
+    });
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
