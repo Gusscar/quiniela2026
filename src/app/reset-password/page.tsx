@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
 export default function ResetPasswordPage() {
@@ -10,10 +11,21 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [ready, setReady] = useState(false);
+  const [linkExpired, setLinkExpired] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    // Check for existing session (set by Supabase from the recovery link hash)
+    // Check for error in URL hash (e.g. expired link)
+    const hash = window.location.hash;
+    if (hash.includes('error=')) {
+      const params = new URLSearchParams(hash.replace('#', ''));
+      const errorCode = params.get('error_code');
+      if (errorCode === 'otp_expired' || params.get('error') === 'access_denied') {
+        setLinkExpired(true);
+        return;
+      }
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setReady(true);
@@ -21,7 +33,6 @@ export default function ResetPasswordPage() {
       }
     });
 
-    // Also listen for PASSWORD_RECOVERY event as fallback
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
         setReady(true);
@@ -70,7 +81,20 @@ export default function ResetPasswordPage() {
         </div>
 
         <div className="bg-card/90 backdrop-blur rounded-2xl p-6 border border-border shadow-xl">
-          {!ready ? (
+          {linkExpired ? (
+            <div className="text-center space-y-4">
+              <div className="text-4xl">⏰</div>
+              <div className="bg-destructive/20 text-destructive rounded-xl p-4 text-sm">
+                El enlace expiró o ya fue usado. Solicita uno nuevo.
+              </div>
+              <Link
+                href="/forgot-password"
+                className="block w-full bg-primary text-primary-foreground font-bold py-3 rounded-xl hover:opacity-90 transition text-center text-sm"
+              >
+                Solicitar nuevo enlace
+              </Link>
+            </div>
+          ) : !ready ? (
             <div className="text-center py-8 space-y-3">
               <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
               <p className="text-muted-foreground text-sm">Verificando enlace...</p>
