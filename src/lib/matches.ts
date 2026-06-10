@@ -42,6 +42,13 @@ export function groupMatchesByGroup(matches: Match[]): Record<Group, Match[]> {
   return groups;
 }
 
+export function getQuinielaDeadline(matches: Match[]): Date | null {
+  if (!matches.length) return null;
+  // matches are already sorted by datetime ascending
+  const first = matches[0];
+  return new Date(new Date(first.datetime).getTime() - 2 * 60 * 60 * 1000);
+}
+
 export function isMatchLocked(match: Match): boolean {
   if (match.status !== 'pending' && match.status !== 'scheduled') return true;
   // Also lock if match datetime has already passed (in case DB status hasn't been synced yet)

@@ -11,14 +11,15 @@ interface PredictionInputProps {
   prediction?: Prediction;
   userId: string;
   onSave?: () => void;
+  quinielaClosed?: boolean;
 }
 
-export function PredictionInput({ match, prediction, userId, onSave }: PredictionInputProps) {
+export function PredictionInput({ match, prediction, userId, onSave, quinielaClosed }: PredictionInputProps) {
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(!prediction);
   const [goalsA, setGoalsA] = useState<string>(prediction?.goalsA?.toString() ?? '');
   const [goalsB, setGoalsB] = useState<string>(prediction?.goalsB?.toString() ?? '');
-  const locked = isMatchLocked(match);
+  const locked = isMatchLocked(match) || !!quinielaClosed;
 
   const handleSave = async () => {
     const a = parseInt(goalsA);
@@ -36,8 +37,8 @@ export function PredictionInput({ match, prediction, userId, onSave }: Predictio
       });
       setEditing(false);
       onSave?.();
-    } catch {
-      toast.error('Error al guardar');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error al guardar');
     } finally {
       setSaving(false);
     }

@@ -19,30 +19,18 @@ export async function getPredictions(userId: string): Promise<Prediction[]> {
 }
 
 export async function savePrediction(
-  userId: string,
+  _userId: string,
   matchId: string,
   goalsA: number | null,
   goalsB: number | null
 ): Promise<void> {
-  // Validate goals range
-  if (goalsA !== null && (goalsA < 0 || goalsA > 50 || !Number.isInteger(goalsA))) {
-    throw new Error('Marcador inválido');
+  const res = await fetch('/api/predictions/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ matchId, goalsA, goalsB }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Error al guardar');
   }
-  if (goalsB !== null && (goalsB < 0 || goalsB > 50 || !Number.isInteger(goalsB))) {
-    throw new Error('Marcador inválido');
-  }
-  const { error } = await supabase.from('predictions').upsert(
-    {
-      user_id: userId,
-      match_id: matchId,
-      goalsa: goalsA,
-      goalsb: goalsB,
-      updated_at: new Date().toISOString(),
-    },
-    {
-      onConflict: 'user_id,match_id',
-    }
-  );
-
-  if (error) throw error;
 }

@@ -43,6 +43,35 @@ function ConfirmDeleteModal({ username, onConfirm, onCancel, loading }: { userna
   );
 }
 
+function ConfirmPurgeModal({ count, onConfirm, onCancel, loading }: { count: number; onConfirm: () => void; onCancel: () => void; loading: boolean }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+      <div className="bg-card border border-border rounded-xl p-6 max-w-sm w-full mx-4 shadow-xl">
+        <h3 className="text-lg font-semibold mb-2">Eliminar usuarios pendientes</h3>
+        <p className="text-muted-foreground text-sm mb-6">
+          Se eliminarán <span className="text-foreground font-medium">{count} usuario{count !== 1 ? 's' : ''}</span> con pago pendiente. Esta acción es irreversible y borrará todas sus predicciones.
+        </p>
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onCancel}
+            disabled={loading}
+            className="px-4 py-2 rounded-lg bg-secondary hover:bg-muted text-sm transition disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition disabled:opacity-50"
+          >
+            {loading ? 'Eliminando...' : 'Eliminar todos'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Icon({ name, className = 'w-4 h-4' }: { name: string; className?: string }) {
   const icons: Record<string, React.ReactElement> = {
     shield: (
@@ -72,6 +101,7 @@ function Icon({ name, className = 'w-4 h-4' }: { name: string; className?: strin
 export function UsersManagement() {
   const queryClient = useQueryClient();
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; username: string } | null>(null);
+  const [confirmPurge, setConfirmPurge] = useState(false);
 
   const { data: users, isLoading, refetch } = useQuery({
     queryKey: ['admin-users'],
@@ -138,6 +168,29 @@ export function UsersManagement() {
     },
   });
 
+  const purgePending = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/admin/purge-pending', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!res.ok) {
+        const { error } = await res.json();
+        throw new Error(error || 'Error al purgar');
+      }
+      return res.json() as Promise<{ deleted: number; errors: string[] }>;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast.success(`${data.deleted} usuario${data.deleted !== 1 ? 's' : ''} eliminado${data.deleted !== 1 ? 's' : ''}`);
+      setConfirmPurge(false);
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : 'Error al purgar');
+      setConfirmPurge(false);
+    },
+  });
+
   const deleteUser = useMutation({
     mutationFn: async (userId: string) => {
       const res = await fetch('/api/admin/delete-user', {
@@ -174,6 +227,8 @@ export function UsersManagement() {
     );
   }
 
+  const pendingCount = users?.filter((u) => u.payment_status !== 'paid' && !u.is_admin).length ?? 0;
+
   return (
     <>
       {confirmDelete && (
@@ -184,16 +239,36 @@ export function UsersManagement() {
           onCancel={() => setConfirmDelete(null)}
         />
       )}
+      {confirmPurge && (
+        <ConfirmPurgeModal
+          count={pendingCount}
+          loading={purgePending.isPending}
+          onConfirm={() => purgePending.mutate()}
+          onCancel={() => setConfirmPurge(false)}
+        />
+      )}
 
       <div className="bg-card rounded-xl border border-border p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Usuarios</h2>
-          <button
-            onClick={() => refetch()}
-            className="p-2 hover:bg-secondary rounded-lg transition"
-          >
-            <Icon name="refresh" />
-          </button>
+          <div className="flex items-center gap-2">
+            {pendingCount > 0 && (
+              <button
+                onClick={() => setConfirmPurge(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-500 text-sm font-medium transition"
+                title="Eliminar usuarios con pago pendiente"
+              >
+                <Icon name="trash" />
+                Purgar pendientes ({pendingCount})
+              </button>
+            )}
+            <button
+              onClick={() => refetch()}
+              className="p-2 hover:bg-secondary rounded-lg transition"
+            >
+              <Icon name="refresh" />
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">

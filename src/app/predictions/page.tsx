@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth-store';
-import { getMatches, groupMatchesByGroup } from '@/lib/matches';
+import { getMatches, groupMatchesByGroup, getQuinielaDeadline } from '@/lib/matches';
 import { getPredictions } from '@/lib/predictions';
 import { PredictionInput } from '@/components/prediction-input';
 import { MatchCard, MatchCardSkeleton } from '@/components/match-card';
@@ -12,23 +12,23 @@ import { useRouter } from 'next/navigation';
 
 const groups: Group[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
-const DEADLINE = new Date('2026-06-11T00:00:00');
-
-function useCountdown(target: Date) {
+function useCountdown(target: Date | null) {
   const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
+    if (!target) return;
     setNow(new Date());
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
-  }, []);
-  if (!now) return null;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target?.getTime()]);
+  if (!now || !target) return { time: null, isExpired: false };
   const diff = target.getTime() - now.getTime();
-  if (diff <= 0) return null;
+  if (diff <= 0) return { time: null, isExpired: true };
   const days = Math.floor(diff / 86400000);
   const hours = Math.floor((diff % 86400000) / 3600000);
   const mins = Math.floor((diff % 3600000) / 60000);
   const secs = Math.floor((diff % 60000) / 1000);
-  return { days, hours, mins, secs };
+  return { time: { days, hours, mins, secs }, isExpired: false };
 }
 
 const emptyGroups: Record<Group, Match[]> = {
@@ -57,7 +57,8 @@ export default function PredictionsPage() {
     if (!loading && isAdmin) router.push('/admin');
   }, [user, loading, isAdmin, router]);
 
-  const countdown = useCountdown(DEADLINE);
+  const deadline = useMemo(() => (matches ? getQuinielaDeadline(matches) : null), [matches]);
+  const { time: countdown, isExpired: quinielaClosed } = useCountdown(deadline);
 
   const predictionsMap = useMemo(() => {
     const map = new Map<string, Prediction>();
@@ -95,7 +96,12 @@ export default function PredictionsPage() {
       <h1 className="text-2xl font-bold mb-4">Mis Predicciones</h1>
 
       {/* Countdown to deadline */}
-      {countdown && (
+      {quinielaClosed ? (
+        <div className="mb-4 bg-destructive/10 border border-destructive/30 rounded-2xl px-4 py-3 flex items-center gap-2">
+          <span className="text-lg">🔒</span>
+          <span className="text-sm font-medium text-destructive">Los pronósticos están cerrados. Ya no se pueden editar.</span>
+        </div>
+      ) : countdown && (
         <div className="mb-4 bg-card border border-border rounded-2xl px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-lg">⏰</span>
@@ -189,6 +195,7 @@ export default function PredictionsPage() {
                 prediction={predictionsMap.get(match.id)}
                 userId={user.id}
                 onSave={refetchPredictions}
+                quinielaClosed={quinielaClosed}
               />
             </MatchCard>
           ))
