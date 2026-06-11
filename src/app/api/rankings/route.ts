@@ -56,6 +56,13 @@ export async function GET() {
     }
   });
 
+  // Ensure all paid users appear, even those with no predictions
+  for (const profile of profiles ?? []) {
+    if (!userPoints[profile.id]) {
+      userPoints[profile.id] = { points: 0, count: 0 };
+    }
+  }
+
   const paidProfileIds = new Set(profiles?.map((p) => p.id) ?? []);
 
   const rankings: Standing[] = Object.entries(userPoints)
