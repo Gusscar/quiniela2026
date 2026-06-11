@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
 import { getMatches } from '@/lib/matches';
 import { toast } from 'sonner';
 import { Match } from '@/types';
@@ -46,11 +45,13 @@ function MatchRow({ match }: { match: Match }) {
 
   const updateMatch = useMutation({
     mutationFn: async ({ status, scorea, scoreb }: { status: string; scorea?: number | null; scoreb?: number | null }) => {
-      const { error } = await supabase
-        .from('matches')
-        .update({ status, scorea: scorea ?? null, scoreb: scoreb ?? null })
-        .eq('id', match.id);
-      if (error) throw error;
+      const res = await fetch('/api/admin/update-match', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ matchId: match.id, status, scorea: scorea ?? null, scoreb: scoreb ?? null }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Error desconocido');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
