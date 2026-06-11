@@ -27,7 +27,8 @@ export async function GET() {
 
   const { data: profiles, error: profilesError } = await supabaseAdmin
     .from('user_profiles')
-    .select('*');
+    .select('*')
+    .eq('payment_status', 'paid');
 
   if (profilesError) {
     return NextResponse.json({ error: profilesError.message }, { status: 500 });
@@ -55,7 +56,10 @@ export async function GET() {
     }
   });
 
+  const paidProfileIds = new Set(profiles?.map((p) => p.id) ?? []);
+
   const rankings: Standing[] = Object.entries(userPoints)
+    .filter(([userId]) => paidProfileIds.has(userId))
     .map(([userId, data]) => {
       const profile = profiles?.find((p) => p.id === userId);
       return {
