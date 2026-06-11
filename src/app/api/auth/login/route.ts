@@ -67,13 +67,20 @@ export async function POST(request: NextRequest) {
   if (firstMatch) {
     const cutoff = new Date(firstMatch.datetime).getTime() - 60 * 60 * 1000;
     if (Date.now() >= cutoff) {
-      const { data: profile } = await supabaseAdmin
-        .from('user_profiles')
-        .select('payment_status')
-        .eq('id', authData.user.id)
-        .single();
+      const [{ data: profile }, { data: adminCheck }] = await Promise.all([
+        supabaseAdmin
+          .from('user_profiles')
+          .select('payment_status')
+          .eq('id', authData.user.id)
+          .single(),
+        supabaseAdmin
+          .from('admin_users')
+          .select('id')
+          .eq('id', authData.user.id)
+          .maybeSingle(),
+      ]);
 
-      if (profile?.payment_status !== 'paid') {
+      if (!adminCheck && profile?.payment_status !== 'paid') {
         await supabase.auth.signOut();
         return NextResponse.json(
           { error: 'El torneo ya comenzó. Solo participantes con pago confirmado pueden ingresar.' },
