@@ -86,7 +86,7 @@ export default function ComparePage() {
   // Load user profiles (excluding self)
   useEffect(() => {
     if (!user) return;
-    supabase.from('user_profiles').select('id, username').then(({ data }) => {
+    supabase.from('user_profiles').select('id, username').eq('payment_status', 'paid').then(({ data }) => {
       setUsers((data || []).filter((u: UserProfile) => u.id !== user.id));
     });
   }, [user]);
