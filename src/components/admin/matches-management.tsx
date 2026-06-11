@@ -55,6 +55,7 @@ function MatchRow({ match }: { match: Match }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
+      queryClient.invalidateQueries({ queryKey: ['rankings'] });
       toast.success('Partido actualizado');
     },
     onError: () => toast.error('Error al actualizar'),
