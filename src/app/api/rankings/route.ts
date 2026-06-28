@@ -27,8 +27,7 @@ export async function GET() {
 
   const { data: profiles, error: profilesError } = await supabaseAdmin
     .from('user_profiles')
-    .select('*')
-    .eq('payment_status', 'paid');
+    .select('*');
 
   if (profilesError) {
     return NextResponse.json({ error: profilesError.message }, { status: 500 });
