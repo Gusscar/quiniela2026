@@ -135,7 +135,7 @@ function PlaceholderCard({ label }: { label: string }) {
 }
 
 export default function OctavosPage() {
-  const { user, loading } = useAuthStore();
+  const { user, loading, isAdmin } = useAuthStore();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [preRegistered, setPreRegistered] = useState(false);
@@ -251,7 +251,7 @@ export default function OctavosPage() {
       </div>
 
       {/* Pre-registration card */}
-      <div className="bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 rounded-2xl p-5 mb-8">
+      {!isAdmin && <div className="bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 rounded-2xl p-5 mb-8">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center shrink-0 mt-0.5">
             <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -270,7 +270,7 @@ export default function OctavosPage() {
             {!preRegistered && (
               <div className="space-y-2 mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl font-black text-primary">$10.000</span>
+                  <span className="text-xl font-black text-primary">$20.000</span>
                   <span className="text-xs text-muted-foreground">pesos · cuota de participacion</span>
                 </div>
                 <div className="space-y-1 text-xs text-muted-foreground">
@@ -317,7 +317,7 @@ export default function OctavosPage() {
             )}
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* Groups: top 2 per group */}
       {loadingTeams ? (
