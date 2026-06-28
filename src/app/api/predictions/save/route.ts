@@ -70,6 +70,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Este partido ya comenzó' }, { status: 403 });
   }
 
+  const { advancingTeam } = body;
+  const validAdvancing = advancingTeam === 'A' || advancingTeam === 'B' ? advancingTeam : null;
+
   // Save prediction
   const { error } = await supabaseAdmin.from('predictions').upsert(
     {
@@ -77,6 +80,7 @@ export async function POST(req: NextRequest) {
       match_id: matchId,
       goalsa: goalsA,
       goalsb: goalsB,
+      advancing_team: validAdvancing,
       updated_at: new Date().toISOString(),
     },
     { onConflict: 'user_id,match_id' }

@@ -15,10 +15,11 @@ export interface Match {
   teama_id: string;
   teamb_id: string;
   datetime: string;
-  group_letter: Group;
+  group_letter: Group | null;
   status: MatchStatus;
   scorea?: number | null;
   scoreb?: number | null;
+  advancing_team?: 'A' | 'B' | null;
   teamA?: Team;
   teamB?: Team;
 }
@@ -29,6 +30,7 @@ export interface Prediction {
   match_id: string;
   goalsA: number | null;
   goalsB: number | null;
+  advancing_team?: 'A' | 'B' | null;
   created_at?: string;
 }
 
