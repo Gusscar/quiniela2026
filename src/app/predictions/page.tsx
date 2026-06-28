@@ -121,7 +121,6 @@ export default function PredictionsPage() {
             </div>
           </div>
         ) : null
-        )
       )}
 
       {/* Progress */}
