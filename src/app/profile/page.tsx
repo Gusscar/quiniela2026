@@ -81,8 +81,9 @@ export default function ProfilePage() {
     else zeroCount++;
   }
 
-  const totalPredictions = predictions?.length ?? 0;
-  const totalMatches = matches?.length ?? 72;
+  const r16Matches = (matches ?? []).filter((m) => !m.group_letter);
+  const totalPredictions = (predictions ?? []).filter((p) => r16Matches.some((m) => m.id === p.match_id)).length;
+  const totalMatches = r16Matches.length || 16;
   const position = rankings?.find((r) => r.user_id === user.id)?.position ?? null;
   const totalPlayers = rankings?.length ?? 0;
   const username =
