@@ -11,18 +11,17 @@ interface PredictionInputProps {
   prediction?: Prediction;
   userId: string;
   onSave?: () => void;
-  quinielaClosed?: boolean;
 }
 
 const isKnockout = (match: Match) => !match.group_letter;
 
-export function PredictionInput({ match, prediction, userId, onSave, quinielaClosed }: PredictionInputProps) {
+export function PredictionInput({ match, prediction, userId, onSave }: PredictionInputProps) {
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(!prediction);
   const [goalsA, setGoalsA] = useState<string>(prediction?.goalsA?.toString() ?? '');
   const [goalsB, setGoalsB] = useState<string>(prediction?.goalsB?.toString() ?? '');
   const [advancingTeam, setAdvancingTeam] = useState<'A' | 'B' | null>(prediction?.advancing_team ?? null);
-  const locked = isMatchLocked(match) || !!quinielaClosed;
+  const locked = isMatchLocked(match);
   const knockout = isKnockout(match);
 
   const a = parseInt(goalsA);

@@ -35,26 +35,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Marcador inválido' }, { status: 400 });
   }
 
-  // Check global quiniela deadline: 30 min before first R16 match
-  const { data: firstR16Match } = await supabaseAdmin
-    .from('matches')
-    .select('datetime')
-    .is('group_letter', null)
-    .order('datetime', { ascending: true })
-    .limit(1)
-    .single();
-
-  if (firstR16Match) {
-    const deadline = new Date(firstR16Match.datetime).getTime() - 30 * 60 * 1000;
-    if (Date.now() >= deadline) {
-      return NextResponse.json(
-        { error: 'El plazo de predicciones ha cerrado.' },
-        { status: 403 }
-      );
-    }
-  }
-
-  // Also verify the individual match hasn't started
+  // Verify the individual match: lock 30 min before it starts
   const { data: match } = await supabaseAdmin
     .from('matches')
     .select('datetime, status')
@@ -67,8 +48,8 @@ export async function POST(req: NextRequest) {
   if (match.status !== 'pending' && match.status !== 'scheduled') {
     return NextResponse.json({ error: 'Este partido ya no acepta predicciones' }, { status: 403 });
   }
-  if (new Date() >= new Date(match.datetime)) {
-    return NextResponse.json({ error: 'Este partido ya comenzó' }, { status: 403 });
+  if (Date.now() >= new Date(match.datetime).getTime() - 30 * 60 * 1000) {
+    return NextResponse.json({ error: 'Este partido ya no acepta predicciones (cierra 30 min antes)' }, { status: 403 });
   }
 
   const { advancingTeam } = body;

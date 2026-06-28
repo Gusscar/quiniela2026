@@ -51,6 +51,6 @@ export function getQuinielaDeadline(matches: Match[]): Date | null {
 
 export function isMatchLocked(match: Match): boolean {
   if (match.status !== 'pending' && match.status !== 'scheduled') return true;
-  // Also lock if match datetime has already passed
-  return new Date() >= new Date(match.datetime);
+  // Lock 30 minutes before match starts
+  return Date.now() >= new Date(match.datetime).getTime() - 30 * 60 * 1000;
 }

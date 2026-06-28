@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth-store';
 import { getMatches } from '@/lib/matches';
@@ -11,25 +11,6 @@ import { Match, Prediction } from '@/types';
 import { useRouter } from 'next/navigation';
 
 const GROUP_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
-
-function useCountdown(target: Date | null) {
-  const [now, setNow] = useState<Date | null>(null);
-  useEffect(() => {
-    if (!target) return;
-    setNow(new Date());
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [target?.getTime()]);
-  if (!now || !target) return { time: null, isExpired: false };
-  const diff = target.getTime() - now.getTime();
-  if (diff <= 0) return { time: null, isExpired: true };
-  const days = Math.floor(diff / 86400000);
-  const hours = Math.floor((diff % 86400000) / 3600000);
-  const mins = Math.floor((diff % 3600000) / 60000);
-  const secs = Math.floor((diff % 60000) / 1000);
-  return { time: { days, hours, mins, secs }, isExpired: false };
-}
 
 export default function PredictionsPage() {
   const { user, loading, isAdmin } = useAuthStore();
@@ -57,14 +38,6 @@ export default function PredictionsPage() {
       .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime()),
     [matches]
   );
-
-  // Cierre global: 30 min antes del primer partido R16
-  const deadline = useMemo(() => {
-    if (!r16Matches.length) return null;
-    return new Date(new Date(r16Matches[0].datetime).getTime() - 30 * 60 * 1000);
-  }, [r16Matches]);
-
-  const { time: countdown, isExpired: quinielaClosed } = useCountdown(deadline);
 
   const predictionsMap = useMemo(() => {
     const map = new Map<string, Prediction>();
@@ -98,29 +71,12 @@ export default function PredictionsPage() {
         <p className="text-sm text-muted-foreground">Predice los 16 partidos eliminatorios</p>
       </div>
 
-      {/* Countdown */}
+      {/* Info cierre por partido */}
       {r16Matches.length > 0 && (
-        quinielaClosed ? (
-          <div className="mb-4 bg-destructive/10 border border-destructive/30 rounded-2xl px-4 py-3 flex items-center gap-2">
-            <span className="text-lg">🔒</span>
-            <span className="text-sm font-medium text-destructive">Los pronósticos están cerrados.</span>
-          </div>
-        ) : countdown ? (
-          <div className="mb-4 bg-card border border-border rounded-2xl px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">⏰</span>
-              <span className="text-sm font-medium">Cierre de pronósticos</span>
-            </div>
-            <div className="flex items-center gap-1 tabular-nums text-sm font-bold">
-              {countdown.days > 0 && (
-                <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-lg">{countdown.days}d</span>
-              )}
-              <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-lg">{String(countdown.hours).padStart(2, '0')}h</span>
-              <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-lg">{String(countdown.mins).padStart(2, '0')}m</span>
-              <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-lg">{String(countdown.secs).padStart(2, '0')}s</span>
-            </div>
-          </div>
-        ) : null
+        <div className="mb-4 bg-card border border-border rounded-2xl px-4 py-3 flex items-center gap-2">
+          <span className="text-lg">⏰</span>
+          <span className="text-sm text-muted-foreground">Cada partido se bloquea <span className="font-semibold text-foreground">30 min antes</span> de comenzar.</span>
+        </div>
       )}
 
       {/* Progress */}
@@ -177,7 +133,6 @@ export default function PredictionsPage() {
                 prediction={predictionsMap.get(match.id)}
                 userId={user.id}
                 onSave={refetchPredictions}
-                quinielaClosed={quinielaClosed}
               />
             </MatchCard>
           ))
