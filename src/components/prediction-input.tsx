@@ -58,7 +58,6 @@ export function PredictionInput({ match, prediction, userId, onSave }: Predictio
     return (
       <div className="flex flex-col items-center gap-2">
         <div className="flex items-center justify-center gap-3">
-          <span className="text-muted-foreground text-sm">Tu marcador:</span>
           <span className="text-lg font-bold tabular-nums bg-secondary px-4 py-1.5 rounded-xl">
             {prediction?.goalsA ?? '-'} – {prediction?.goalsB ?? '-'}
           </span>
@@ -84,7 +83,6 @@ export function PredictionInput({ match, prediction, userId, onSave }: Predictio
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-muted-foreground text-sm">Tu marcador:</span>
             <span className="text-xl font-bold tabular-nums bg-primary/10 text-primary px-4 py-1.5 rounded-xl">
               {prediction.goalsA ?? '-'} – {prediction.goalsB ?? '-'}
             </span>
