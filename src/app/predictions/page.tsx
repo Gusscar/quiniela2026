@@ -3,14 +3,14 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth-store';
-import { getMatches, groupMatchesByGroup, getQuinielaDeadline } from '@/lib/matches';
+import { getMatches } from '@/lib/matches';
 import { getPredictions } from '@/lib/predictions';
 import { PredictionInput } from '@/components/prediction-input';
 import { MatchCard, MatchCardSkeleton } from '@/components/match-card';
-import { Group, Match, Prediction } from '@/types';
+import { Match, Prediction } from '@/types';
 import { useRouter } from 'next/navigation';
 
-const groups: Group[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+const GROUP_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
 function useCountdown(target: Date | null) {
   const [now, setNow] = useState<Date | null>(null);
@@ -31,14 +31,8 @@ function useCountdown(target: Date | null) {
   return { time: { days, hours, mins, secs }, isExpired: false };
 }
 
-const emptyGroups: Record<Group, Match[]> = {
-  A: [], B: [], C: [], D: [], E: [], F: [], G: [], H: [],
-  I: [], J: [], K: [], L: [],
-};
-
 export default function PredictionsPage() {
   const { user, loading, isAdmin } = useAuthStore();
-  const [selectedGroup, setSelectedGroup] = useState<Group>('A');
   const router = useRouter();
 
   const { data: matches, isLoading: loadingMatches, error: matchesError } = useQuery({
@@ -57,7 +51,19 @@ export default function PredictionsPage() {
     if (!loading && isAdmin) router.push('/admin');
   }, [user, loading, isAdmin, router]);
 
-  const deadline = useMemo(() => (matches ? getQuinielaDeadline(matches) : null), [matches]);
+  // Separate group stage from knockout matches
+  const r16Matches = useMemo(() =>
+    (matches ?? []).filter((m) => !GROUP_LETTERS.includes(m.group_letter))
+      .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime()),
+    [matches]
+  );
+
+  // Deadline: 2 hours before first R16 match
+  const deadline = useMemo(() => {
+    if (!r16Matches.length) return null;
+    return new Date(new Date(r16Matches[0].datetime).getTime() - 2 * 60 * 60 * 1000);
+  }, [r16Matches]);
+
   const { time: countdown, isExpired: quinielaClosed } = useCountdown(deadline);
 
   const predictionsMap = useMemo(() => {
@@ -66,17 +72,10 @@ export default function PredictionsPage() {
     return map;
   }, [predictions]);
 
-  const groupedMatches = matches ? groupMatchesByGroup(matches) : emptyGroups;
-  const currentGroupMatches = groupedMatches[selectedGroup];
-
-  const groupStats = useMemo(() => {
-    const stats = {} as Record<Group, { predicted: number; total: number }>;
-    for (const g of groups) {
-      const ms = groupedMatches[g];
-      stats[g] = { total: ms.length, predicted: ms.filter(m => predictionsMap.has(m.id)).length };
-    }
-    return stats;
-  }, [groupedMatches, predictionsMap]);
+  const totalPredicted = r16Matches.filter((m) => predictionsMap.has(m.id)).length;
+  const totalMatches = r16Matches.length;
+  const pct = totalMatches > 0 ? Math.round((totalPredicted / totalMatches) * 100) : 0;
+  const isComplete = totalMatches > 0 && totalPredicted >= totalMatches;
 
   if (loading || !user || isAdmin) {
     return (
@@ -86,40 +85,46 @@ export default function PredictionsPage() {
     );
   }
 
-  const totalMatches = matches?.length ?? 72;
-  const totalPredicted = predictions?.length ?? 0;
-  const pct = totalMatches > 0 ? Math.round((totalPredicted / totalMatches) * 100) : 0;
-  const isComplete = totalPredicted >= totalMatches;
-
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-4">Mis Predicciones</h1>
+      {/* Header */}
+      <div className="mb-4">
+        <div className="flex items-center gap-3 mb-1">
+          <h1 className="text-2xl font-bold">Dieciseisavos de Final</h1>
+          <span className="text-xs font-medium bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 px-2 py-0.5 rounded-full">
+            Nueva ronda
+          </span>
+        </div>
+        <p className="text-sm text-muted-foreground">Predice los 16 partidos eliminatorios</p>
+      </div>
 
-      {/* Countdown to deadline */}
-      {quinielaClosed ? (
-        <div className="mb-4 bg-destructive/10 border border-destructive/30 rounded-2xl px-4 py-3 flex items-center gap-2">
-          <span className="text-lg">🔒</span>
-          <span className="text-sm font-medium text-destructive">Los pronósticos están cerrados. Ya no se pueden editar.</span>
-        </div>
-      ) : countdown && (
-        <div className="mb-4 bg-card border border-border rounded-2xl px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">⏰</span>
-            <span className="text-sm font-medium">Cierre de pronósticos</span>
+      {/* Countdown */}
+      {r16Matches.length > 0 && (
+        quinielaClosed ? (
+          <div className="mb-4 bg-destructive/10 border border-destructive/30 rounded-2xl px-4 py-3 flex items-center gap-2">
+            <span className="text-lg">🔒</span>
+            <span className="text-sm font-medium text-destructive">Los pronósticos están cerrados.</span>
           </div>
-          <div className="flex items-center gap-1 tabular-nums text-sm font-bold">
-            {countdown.days > 0 && (
-              <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-lg">{countdown.days}d</span>
-            )}
-            <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-lg">{String(countdown.hours).padStart(2, '0')}h</span>
-            <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-lg">{String(countdown.mins).padStart(2, '0')}m</span>
-            <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-lg">{String(countdown.secs).padStart(2, '0')}s</span>
+        ) : countdown ? (
+          <div className="mb-4 bg-card border border-border rounded-2xl px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">⏰</span>
+              <span className="text-sm font-medium">Cierre de pronósticos</span>
+            </div>
+            <div className="flex items-center gap-1 tabular-nums text-sm font-bold">
+              {countdown.days > 0 && (
+                <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-lg">{countdown.days}d</span>
+              )}
+              <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-lg">{String(countdown.hours).padStart(2, '0')}h</span>
+              <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-lg">{String(countdown.mins).padStart(2, '0')}m</span>
+              <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-lg">{String(countdown.secs).padStart(2, '0')}s</span>
+            </div>
           </div>
-        </div>
+        ) : null
       )}
 
-      {/* Progress bar */}
-      {!loadingPredictions && !loadingMatches && (
+      {/* Progress */}
+      {r16Matches.length > 0 && !loadingPredictions && !loadingMatches && (
         <div className="mb-6 bg-card border border-border rounded-2xl px-4 py-3">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">
@@ -137,58 +142,35 @@ export default function PredictionsPage() {
           </div>
           <p className="text-xs text-muted-foreground mt-1.5">
             {isComplete
-              ? 'Listos para el Mundial 🎉'
-              : `${totalMatches - totalPredicted} partidos sin predecir — ¡no pierdas puntos!`}
+              ? '¡Listos para los Dieciseisavos! 🎉'
+              : `${totalMatches - totalPredicted} partidos sin predecir`}
           </p>
         </div>
       )}
 
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-        {groups.map((group) => {
-          const stats = groupStats[group];
-          const done = stats.total > 0 && stats.predicted === stats.total;
-          return (
-            <button
-              key={group}
-              onClick={() => setSelectedGroup(group)}
-              className={`px-3 py-2 rounded-lg font-medium whitespace-nowrap transition flex flex-col items-center gap-0.5 ${
-                selectedGroup === group
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-secondary hover:bg-muted'
-              }`}
-            >
-              <span>Grupo {group}</span>
-              {!loadingPredictions && !loadingMatches && stats.total > 0 && (
-                <span className={`text-[10px] font-normal leading-none ${
-                  selectedGroup === group
-                    ? 'text-primary-foreground/70'
-                    : done ? 'text-green-500' : 'text-muted-foreground'
-                }`}>
-                  {stats.predicted}/{stats.total}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
+      {/* Matches list */}
       <div className="space-y-3">
         {matchesError ? (
           <div className="text-center py-12 text-destructive">
             Error cargando partidos: {(matchesError as Error).message}
           </div>
         ) : loadingMatches || loadingPredictions ? (
-          <>
-            {[...Array(6)].map((_, i) => (
-              <MatchCardSkeleton key={i} />
-            ))}
-          </>
-        ) : currentGroupMatches.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            No hay partidos en este grupo
+          [...Array(6)].map((_, i) => <MatchCardSkeleton key={i} />)
+        ) : r16Matches.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="font-semibold text-lg mb-1">Proximamente</p>
+            <p className="text-sm text-muted-foreground">
+              Los partidos de Dieciseisavos se habilitarán en breve.
+            </p>
           </div>
         ) : (
-          currentGroupMatches.map((match: Match) => (
+          r16Matches.map((match: Match) => (
             <MatchCard key={match.id} match={match}>
               <PredictionInput
                 match={match}
