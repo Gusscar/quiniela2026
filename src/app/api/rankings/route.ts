@@ -33,6 +33,9 @@ export async function GET() {
     return NextResponse.json({ error: profilesError.message }, { status: 500 });
   }
 
+  const { data: admins } = await supabaseAdmin.from('admin_users').select('id');
+  const adminIds = new Set(admins?.map((a) => a.id) ?? []);
+
   const userPoints: Record<string, { points: number; count: number }> = {};
 
   predictions.forEach((pred) => {
@@ -62,10 +65,10 @@ export async function GET() {
     }
   }
 
-  const paidProfileIds = new Set(profiles?.map((p) => p.id) ?? []);
+  const profileIds = new Set(profiles?.map((p) => p.id) ?? []);
 
   const rankings: Standing[] = Object.entries(userPoints)
-    .filter(([userId]) => paidProfileIds.has(userId))
+    .filter(([userId]) => profileIds.has(userId) && !adminIds.has(userId))
     .map(([userId, data]) => {
       const profile = profiles?.find((p) => p.id === userId);
       return {
