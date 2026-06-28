@@ -42,13 +42,16 @@ function MatchRow({ match }: { match: Match }) {
   const queryClient = useQueryClient();
   const [scoreA, setScoreA] = useState<string>(match.scorea?.toString() ?? '0');
   const [scoreB, setScoreB] = useState<string>(match.scoreb?.toString() ?? '0');
+  const [advancingTeam, setAdvancingTeam] = useState<'A' | 'B' | null>(match.advancing_team ?? null);
+
+  const isDraw = scoreA !== '' && scoreB !== '' && scoreA === scoreB;
 
   const updateMatch = useMutation({
     mutationFn: async ({ status, scorea, scoreb }: { status: string; scorea?: number | null; scoreb?: number | null }) => {
       const res = await fetch('/api/admin/update-match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matchId: match.id, status, scorea: scorea ?? null, scoreb: scoreb ?? null }),
+        body: JSON.stringify({ matchId: match.id, status, scorea: scorea ?? null, scoreb: scoreb ?? null, advancingTeam: isDraw ? advancingTeam : null }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Error desconocido');
@@ -95,6 +98,28 @@ function MatchRow({ match }: { match: Match }) {
           <span>{match.teamB?.name ?? '?'}</span>
         </div>
       </div>
+
+      {/* Advancing team selector — solo si empate */}
+      {isActive && isDraw && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs text-muted-foreground">¿Quién avanza por penales?</span>
+          <div className="flex gap-1">
+            {(['A', 'B'] as const).map((side) => (
+              <button
+                key={side}
+                onClick={() => setAdvancingTeam(side)}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold border transition ${
+                  advancingTeam === side
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-secondary border-border hover:bg-muted'
+                }`}
+              >
+                {side === 'A' ? (match.teamA?.name ?? 'Local') : (match.teamB?.name ?? 'Visitante')}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Controls */}
       <div className="flex items-center gap-3 flex-wrap">

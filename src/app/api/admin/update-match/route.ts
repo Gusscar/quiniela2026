@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     .maybeSingle();
   if (!adminCheck) return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
 
-  const { matchId, status, scorea, scoreb } = await req.json();
+  const { matchId, status, scorea, scoreb, advancingTeam } = await req.json();
   if (!matchId || !status) {
     return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
   }
@@ -36,9 +36,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Status inválido' }, { status: 400 });
   }
 
+  const validAdvancing = advancingTeam === 'A' || advancingTeam === 'B' ? advancingTeam : null;
+
   const { error } = await supabaseAdmin
     .from('matches')
-    .update({ status, scorea: scorea ?? null, scoreb: scoreb ?? null })
+    .update({ status, scorea: scorea ?? null, scoreb: scoreb ?? null, advancing_team: validAdvancing })
     .eq('id', matchId);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
