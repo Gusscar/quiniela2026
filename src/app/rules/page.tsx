@@ -12,31 +12,22 @@ export default function RulesPage() {
     },
     {
       category: 'Fecha Límite',
-      rule: (
-        <>
-          Los pronósticos se reciben hasta el <strong>11 de junio a las 12:00 AM</strong>.
-        </>
-      ),
+      rule: 'Los pronósticos cierran 30 minutos antes del primer partido de Dieciseisavos. No se aceptan cambios después de ese momento.',
       points: '—',
     },
     {
       category: 'Tiempo Oficial',
-      rule: "Válido solo para los 90' reglamentarios (incluyendo el añadido). No aplica para prórrogas.",
-      points: '—',
-    },
-    {
-      category: 'Sin Cambios',
-      rule: 'Pronóstico enviado es definitivo; no se permiten ediciones posteriores.',
-      points: '—',
+      rule: "Válido solo para los 90' reglamentarios (incluyendo el añadido). En caso de empate, debes seleccionar el equipo que avanza por penales (+1 punto si aciertas).",
+      points: '+1',
     },
     {
       category: 'Premiación',
-      rule: '1er Lugar: 60%, 2do Lugar: 20%, 3er Lugar: 10%. El 10% restante corresponde al sistema.',
+      rule: 'Un único ganador se lleva el 90% del pozo total. El 10% restante corresponde al sistema.',
       points: '—',
     },
     {
-      category: 'Empate en Posición',
-      rule: 'Si dos o más jugadores terminan con el mismo puntaje en una posición premiada (1°, 2° o 3°), el premio correspondiente se dividirá en partes iguales entre ellos.',
+      category: 'Empate en Puntos',
+      rule: 'Si dos o más jugadores terminan con el mismo puntaje, el premio se divide en partes iguales entre ellos.',
       points: '—',
     },
     {
@@ -72,7 +63,7 @@ export default function RulesPage() {
       </div>
 
       <p className="text-xs text-muted-foreground text-center">
-        El sistema retiene el <strong>10%</strong> del pozo total para gastos operativos. El <strong>90%</strong> restante se distribuye: <strong>60%</strong> al 1er lugar, <strong>20%</strong> al 2do lugar y <strong>10%</strong> al 3er lugar. En caso de empate en una posición premiada, el monto se divide en partes iguales.
+        El sistema retiene el <strong>10%</strong> del pozo total para gastos operativos. El <strong>90%</strong> restante es para el <strong>único ganador</strong>. En caso de empate en puntos, el premio se divide en partes iguales.
       </p>
     </div>
   );
