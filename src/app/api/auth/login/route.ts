@@ -56,39 +56,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 401 });
   }
 
-  // After the first match cutoff (1 hour before), only paid users can log in
-  const { data: firstMatch } = await supabaseAdmin
-    .from('matches')
-    .select('datetime')
-    .order('datetime', { ascending: true })
-    .limit(1)
-    .single();
-
-  if (firstMatch) {
-    const cutoff = new Date(firstMatch.datetime).getTime() - 60 * 60 * 1000;
-    if (Date.now() >= cutoff) {
-      const [{ data: profile }, { data: adminCheck }] = await Promise.all([
-        supabaseAdmin
-          .from('user_profiles')
-          .select('payment_status')
-          .eq('id', authData.user.id)
-          .single(),
-        supabaseAdmin
-          .from('admin_users')
-          .select('id')
-          .eq('id', authData.user.id)
-          .maybeSingle(),
-      ]);
-
-      if (!adminCheck && profile?.payment_status !== 'paid') {
-        await supabase.auth.signOut();
-        return NextResponse.json(
-          { error: 'El torneo ya comenzó. Solo participantes con pago confirmado pueden ingresar.' },
-          { status: 403 }
-        );
-      }
-    }
-  }
-
   return response;
 }
