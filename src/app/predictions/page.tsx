@@ -53,7 +53,7 @@ export default function PredictionsPage() {
 
   // Separate group stage from knockout matches
   const r16Matches = useMemo(() =>
-    (matches ?? []).filter((m) => !GROUP_LETTERS.includes(m.group_letter))
+    (matches ?? []).filter((m) => !m.group_letter || !GROUP_LETTERS.includes(m.group_letter))
       .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime()),
     [matches]
   );
