@@ -49,9 +49,7 @@ export default function RankingsPage() {
               </div>
               <div className="text-right text-xs text-muted-foreground space-y-1">
                 <p>{paidCount} jugadores · {fmt(ENTRY_FEE)} c/u</p>
-                <p className="text-green-400">🥇 {fmt(total * 0.60)}</p>
-                <p className="text-gray-400">🥈 {fmt(total * 0.20)}</p>
-                <p className="text-amber-700">🥉 {fmt(total * 0.10)}</p>
+                <p className="text-yellow-400 font-semibold">🥇 Ganador: {fmt(total * 0.9)}</p>
               </div>
             </div>
           </div>
@@ -84,10 +82,7 @@ export default function RankingsPage() {
                 <tr key={standing.user_id} className="hover:bg-secondary/50">
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-bold ${
-                      index === 0 ? 'bg-yellow-500 text-black' :
-                      index === 1 ? 'bg-gray-400 text-black' :
-                      index === 2 ? 'bg-amber-700 text-white' :
-                      'bg-muted text-muted-foreground'
+                      index === 0 ? 'bg-yellow-500 text-black' : 'bg-muted text-muted-foreground'
                     }`}>
                       {standing.position}
                     </span>

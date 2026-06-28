@@ -6,8 +6,6 @@ import { supabase } from '@/lib/supabase';
 
 const ENTRY_FEE = 10000; // pesos colombianos por participante
 const SYSTEM_PCT = 0.10;
-const PRIZE_PCTS = [0.60, 0.20, 0.10]; // 1°, 2°, 3° del total
-const PRIZE_LABELS = ['🥇 1er lugar', '🥈 2do lugar', '🥉 3er lugar'];
 
 interface Stats {
   totalUsers: number;
@@ -147,27 +145,15 @@ export function AdminStats() {
           </span>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <div className="bg-secondary rounded-lg p-3">
             <p className="text-xs text-muted-foreground mb-1">Sistema (10%)</p>
             <p className="text-xl font-bold text-muted-foreground">{fmt(systemCut)}</p>
           </div>
-          {PRIZE_PCTS.map((pct, i) => (
-            <div
-              key={i}
-              className={`bg-secondary rounded-lg p-3 ${i === 0 ? 'border border-yellow-500/40' : ''}`}
-            >
-              <p className="text-xs text-muted-foreground mb-1">
-                {PRIZE_LABELS[i]}{' '}
-                <span className="opacity-60">({Math.round(pct * 100)}%)</span>
-              </p>
-              <p className={`text-xl font-bold ${
-                i === 0 ? 'text-yellow-400' : i === 1 ? 'text-slate-300' : 'text-amber-600'
-              }`}>
-                {fmt(Math.round(total * pct))}
-              </p>
-            </div>
-          ))}
+          <div className="bg-secondary rounded-lg p-3 border border-yellow-500/40">
+            <p className="text-xs text-muted-foreground mb-1">🥇 Ganador (90%)</p>
+            <p className="text-xl font-bold text-yellow-400">{fmt(total - systemCut)}</p>
+          </div>
         </div>
       </div>
     </div>
