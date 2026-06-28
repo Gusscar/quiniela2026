@@ -66,7 +66,7 @@ function PredBadge({ pred, match, label }: {
 export default function ComparePage() {
   const { user, loading } = useAuthStore();
   const router = useRouter();
-  const [selectedTab, setSelectedTab] = useState<TabId>('R16');
+  const selectedTab: TabId = 'R16';
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [friendId, setFriendId] = useState<string>('');
   const [friendName, setFriendName] = useState<string>('');
@@ -195,28 +195,6 @@ export default function ComparePage() {
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-        <button
-          onClick={() => setSelectedTab('R16')}
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition ${
-            selectedTab === 'R16' ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-muted'
-          }`}
-        >
-          16avos
-        </button>
-        {GROUPS.map((g) => (
-          <button
-            key={g}
-            onClick={() => setSelectedTab(g)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition ${
-              selectedTab === g ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-muted'
-            }`}
-          >
-            Grupo {g}
-          </button>
-        ))}
-      </div>
 
       {/* Match comparison cards */}
       {!friendId ? (
