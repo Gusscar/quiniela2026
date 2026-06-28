@@ -160,12 +160,6 @@ function LoginForm() {
           </button>
         </form>
 
-        <p className="text-center mt-5 text-sm text-muted-foreground">
-          ¿No tienes cuenta?{' '}
-          <Link href="/register" className="text-primary hover:underline font-medium">
-            Regístrate
-          </Link>
-        </p>
       </div>
     </div>
   );
