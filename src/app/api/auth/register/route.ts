@@ -59,24 +59,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, password, username } = body;
 
-    // Check registration cutoff: 1 hour before the first match
-    const { data: firstMatch } = await supabaseAdmin
-      .from('matches')
-      .select('datetime')
-      .order('datetime', { ascending: true })
-      .limit(1)
-      .single();
-
-    if (firstMatch) {
-      const cutoff = new Date(firstMatch.datetime).getTime() - 60 * 60 * 1000;
-      if (Date.now() >= cutoff) {
-        return NextResponse.json(
-          { error: 'El registro está cerrado. El torneo está por comenzar.' },
-          { status: 403 }
-        );
-      }
-    }
-
     // Server-side validation
     if (!email || !password || !username) {
       return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 });
