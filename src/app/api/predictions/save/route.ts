@@ -35,16 +35,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Marcador inválido' }, { status: 400 });
   }
 
-  // Check global quiniela deadline: 2 hours before first match
-  const { data: firstMatch } = await supabaseAdmin
+  // Check global quiniela deadline: 30 min before first R16 match
+  const { data: firstR16Match } = await supabaseAdmin
     .from('matches')
     .select('datetime')
+    .is('group_letter', null)
     .order('datetime', { ascending: true })
     .limit(1)
     .single();
 
-  if (firstMatch) {
-    const deadline = new Date(firstMatch.datetime).getTime() - 2 * 60 * 60 * 1000;
+  if (firstR16Match) {
+    const deadline = new Date(firstR16Match.datetime).getTime() - 30 * 60 * 1000;
     if (Date.now() >= deadline) {
       return NextResponse.json(
         { error: 'El plazo de predicciones ha cerrado.' },
