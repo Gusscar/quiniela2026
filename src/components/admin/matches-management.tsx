@@ -74,8 +74,9 @@ function MatchRow({ match }: { match: Match }) {
   };
 
   const handleSaveScore = () => {
+    const status = (match.status === 'live' || match.status === 'finished') ? match.status : 'finished';
     updateMatch.mutate({
-      status: match.status,
+      status,
       scorea: parseInt(scoreA) || 0,
       scoreb: parseInt(scoreB) || 0,
     });
@@ -85,7 +86,6 @@ function MatchRow({ match }: { match: Match }) {
     day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
   });
 
-  const isActive = match.status === 'live' || match.status === 'finished';
 
   return (
     <div className={`bg-secondary rounded-xl p-4 space-y-3 ${updateMatch.isPending ? 'opacity-60 pointer-events-none' : ''}`}>
@@ -100,7 +100,7 @@ function MatchRow({ match }: { match: Match }) {
       </div>
 
       {/* Advancing team selector — solo si empate */}
-      {isActive && isDraw && (
+      {isDraw && (
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs text-muted-foreground">¿Quién avanza por penales?</span>
           <div className="flex gap-1">
@@ -149,8 +149,7 @@ function MatchRow({ match }: { match: Match }) {
             min="0"
             value={scoreA}
             onChange={(e) => setScoreA(e.target.value)}
-            disabled={!isActive}
-            className="w-12 h-8 bg-card border border-border rounded-lg text-center text-sm font-bold disabled:opacity-40"
+            className="w-12 h-8 bg-card border border-border rounded-lg text-center text-sm font-bold"
           />
           <span className="text-muted-foreground font-bold">-</span>
           <input
@@ -158,18 +157,15 @@ function MatchRow({ match }: { match: Match }) {
             min="0"
             value={scoreB}
             onChange={(e) => setScoreB(e.target.value)}
-            disabled={!isActive}
-            className="w-12 h-8 bg-card border border-border rounded-lg text-center text-sm font-bold disabled:opacity-40"
+            className="w-12 h-8 bg-card border border-border rounded-lg text-center text-sm font-bold"
           />
-          {isActive && (
-            <button
-              onClick={handleSaveScore}
-              className="p-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition"
-              title="Guardar marcador"
-            >
-              <Icon name="save" />
-            </button>
-          )}
+          <button
+            onClick={handleSaveScore}
+            className="p-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition"
+            title="Guardar marcador"
+          >
+            <Icon name="save" />
+          </button>
         </div>
       </div>
     </div>
