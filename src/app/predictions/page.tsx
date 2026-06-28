@@ -58,13 +58,20 @@ export default function PredictionsPage() {
     [matches]
   );
 
-  // Deadline: 2 hours before first R16 match
-  const deadline = useMemo(() => {
-    if (!r16Matches.length) return null;
-    return new Date(new Date(r16Matches[0].datetime).getTime() - 2 * 60 * 60 * 1000);
+  // Próximo partido que aún no está bloqueado (30 min antes de su inicio)
+  const nextUnlocked = useMemo(() => {
+    return r16Matches.find((m) => {
+      const lockTime = new Date(m.datetime).getTime() - 30 * 60 * 1000;
+      return Date.now() < lockTime;
+    }) ?? null;
   }, [r16Matches]);
 
-  const { time: countdown, isExpired: quinielaClosed } = useCountdown(deadline);
+  const deadline = nextUnlocked
+    ? new Date(new Date(nextUnlocked.datetime).getTime() - 30 * 60 * 1000)
+    : null;
+
+  const { time: countdown } = useCountdown(deadline);
+  const quinielaClosed = false; // cada partido se bloquea individualmente
 
   const predictionsMap = useMemo(() => {
     const map = new Map<string, Prediction>();
@@ -100,16 +107,13 @@ export default function PredictionsPage() {
 
       {/* Countdown */}
       {r16Matches.length > 0 && (
-        quinielaClosed ? (
-          <div className="mb-4 bg-destructive/10 border border-destructive/30 rounded-2xl px-4 py-3 flex items-center gap-2">
-            <span className="text-lg">🔒</span>
-            <span className="text-sm font-medium text-destructive">Los pronósticos están cerrados.</span>
-          </div>
-        ) : countdown ? (
+        countdown ? (
           <div className="mb-4 bg-card border border-border rounded-2xl px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-lg">⏰</span>
-              <span className="text-sm font-medium">Cierre de pronósticos</span>
+              <span className="text-sm font-medium">
+                Cierre: {nextUnlocked?.teamA?.name} vs {nextUnlocked?.teamB?.name}
+              </span>
             </div>
             <div className="flex items-center gap-1 tabular-nums text-sm font-bold">
               {countdown.days > 0 && (
