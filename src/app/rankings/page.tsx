@@ -7,7 +7,7 @@ import { Standing } from '@/types';
 import { RulesModal } from '@/components/rules-modal';
 
 // Monto de inscripción por jugador en pesos colombianos
-const ENTRY_FEE = 20000;
+const ENTRY_FEE = 10000;
 
 export default function RankingsPage() {
   const { data: rankings, isLoading } = useQuery<Standing[]>({

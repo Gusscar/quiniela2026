@@ -4,7 +4,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 
-const ENTRY_FEE = 20000; // pesos colombianos por participante
+const ENTRY_FEE = 10000; // pesos colombianos por participante
 const SYSTEM_PCT = 0.10;
 const PRIZE_PCTS = [0.60, 0.20, 0.10]; // 1°, 2°, 3° del total
 const PRIZE_LABELS = ['🥇 1er lugar', '🥈 2do lugar', '🥉 3er lugar'];
