@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
   if (match.status !== 'pending' && match.status !== 'scheduled') {
     return NextResponse.json({ error: 'Este partido ya no acepta predicciones' }, { status: 403 });
   }
-  if (Date.now() >= new Date(match.datetime).getTime() - 15 * 60 * 1000) {
+  if (Date.now() >= new Date(match.datetime).getTime() - 5 * 60 * 1000) {
     return NextResponse.json({ error: 'Este partido ya no acepta predicciones (cierra 30 min antes)' }, { status: 403 });
   }
 

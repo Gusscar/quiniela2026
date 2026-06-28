@@ -75,7 +75,7 @@ export default function PredictionsPage() {
       {r16Matches.length > 0 && (
         <div className="mb-4 bg-card border border-border rounded-2xl px-4 py-3 flex items-center gap-2">
           <span className="text-lg">⏰</span>
-          <span className="text-sm text-muted-foreground">Cada partido se bloquea <span className="font-semibold text-foreground">15 min antes</span> de comenzar.</span>
+          <span className="text-sm text-muted-foreground">Cada partido se bloquea <span className="font-semibold text-foreground">5 min antes</span> de comenzar.</span>
         </div>
       )}
 
