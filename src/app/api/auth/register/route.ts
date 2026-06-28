@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       .limit(1)
       .single();
 
-    if (firstR16 && Date.now() >= new Date(firstR16.datetime).getTime() - 30 * 60 * 1000) {
+    if (firstR16 && Date.now() >= new Date(firstR16.datetime).getTime() - 15 * 60 * 1000) {
       return NextResponse.json({ error: 'El registro está cerrado.' }, { status: 403 });
     }
 
