@@ -270,7 +270,7 @@ export default function OctavosPage() {
             {!preRegistered && (
               <div className="space-y-2 mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl font-black text-primary">$20.000</span>
+                  <span className="text-xl font-black text-primary">$10.000</span>
                   <span className="text-xs text-muted-foreground">pesos · cuota de participacion</span>
                 </div>
                 <div className="space-y-1 text-xs text-muted-foreground">
