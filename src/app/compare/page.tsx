@@ -17,6 +17,8 @@ const emptyGroups: Record<Group, Match[]> = {
   I: [], J: [], K: [], L: [],
 };
 
+type TabId = Group | 'R16';
+
 interface UserProfile { id: string; username: string }
 interface FriendPred { match_id: string; goalsA: number | null; goalsB: number | null }
 
@@ -64,7 +66,7 @@ function PredBadge({ pred, match, label }: {
 export default function ComparePage() {
   const { user, loading } = useAuthStore();
   const router = useRouter();
-  const [selectedGroup, setSelectedGroup] = useState<Group>('A');
+  const [selectedTab, setSelectedTab] = useState<TabId>('R16');
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [friendId, setFriendId] = useState<string>('');
   const [friendName, setFriendName] = useState<string>('');
@@ -120,7 +122,8 @@ export default function ComparePage() {
   const myPredsMap = new Map((myPreds ?? []).map((p) => [p.match_id, p]));
   const friendPredsMap = new Map(friendPreds.map((p) => [p.match_id, p]));
   const grouped = matches ? groupMatchesByGroup(matches) : emptyGroups;
-  const currentMatches = grouped[selectedGroup];
+  const r16Matches = (matches ?? []).filter((m) => !m.group_letter).sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime());
+  const currentMatches = selectedTab === 'R16' ? r16Matches : grouped[selectedTab as Group];
 
   const myName = user.user_metadata?.username ?? user.email?.split('@')[0] ?? 'Yo';
   const filteredUsers = search
@@ -188,14 +191,22 @@ export default function ComparePage() {
         </div>
       )}
 
-      {/* Group tabs */}
+      {/* Tabs */}
       <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+        <button
+          onClick={() => setSelectedTab('R16')}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition ${
+            selectedTab === 'R16' ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-muted'
+          }`}
+        >
+          16avos
+        </button>
         {GROUPS.map((g) => (
           <button
             key={g}
-            onClick={() => setSelectedGroup(g)}
+            onClick={() => setSelectedTab(g)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition ${
-              selectedGroup === g ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-muted'
+              selectedTab === g ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-muted'
             }`}
           >
             Grupo {g}
