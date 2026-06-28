@@ -112,6 +112,27 @@ export default function ProfilePage() {
       </div>
 
 
+      {/* Payment status */}
+      {profileData !== undefined && (
+        <div className={`flex items-center gap-3 rounded-2xl px-5 py-4 mb-6 border ${
+          profileData?.payment_status === 'paid'
+            ? 'bg-green-500/10 border-green-500/30'
+            : 'bg-yellow-500/10 border-yellow-500/30'
+        }`}>
+          <span className="text-2xl">{profileData?.payment_status === 'paid' ? '✅' : '⏳'}</span>
+          <div>
+            <p className={`font-semibold ${profileData?.payment_status === 'paid' ? 'text-green-400' : 'text-yellow-400'}`}>
+              {profileData?.payment_status === 'paid' ? 'Pago confirmado' : 'Pago pendiente'}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {profileData?.payment_status === 'paid'
+                ? 'Tu participación está activa.'
+                : 'Pendiente de confirmación por el administrador.'}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Main stats grid */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         {/* Ranking position */}
