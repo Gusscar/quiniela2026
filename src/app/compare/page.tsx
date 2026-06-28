@@ -88,8 +88,12 @@ export default function ComparePage() {
   // Load user profiles (excluding self)
   useEffect(() => {
     if (!user) return;
-    supabase.from('user_profiles').select('id, username').eq('payment_status', 'paid').then(({ data }) => {
-      setUsers((data || []).filter((u: UserProfile) => u.id !== user.id));
+    Promise.all([
+      supabase.from('user_profiles').select('id, username'),
+      supabase.from('admin_users').select('id'),
+    ]).then(([{ data: profiles }, { data: admins }]) => {
+      const adminIds = new Set((admins ?? []).map((a) => a.id));
+      setUsers((profiles ?? []).filter((u: UserProfile) => u.id !== user.id && !adminIds.has(u.id)));
     });
   }, [user]);
 
