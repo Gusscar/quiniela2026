@@ -28,7 +28,7 @@ function PredBadge({ pred, match, label }: {
   const finished = match.status === 'finished';
   const hasPred = pred && pred.goalsA !== null && pred.goalsB !== null;
 
-  let pts: 0 | 1 | 2 | 3 = 0;
+  let pts: number = 0;
   let badgeColor = '';
   if (finished && hasPred) {
     pts = calculatePoints(pred!.goalsA, pred!.goalsB, match.scorea ?? undefined, match.scoreb ?? undefined);
