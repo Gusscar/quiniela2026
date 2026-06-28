@@ -117,10 +117,10 @@ export function UsersManagement() {
         .from('admin_users')
         .select('id');
 
-      return profiles?.map((profile) => ({
-        ...profile,
-        is_admin: admins?.some((a) => a.id === profile.id) || false,
-      })) as (UserProfile & { is_admin: boolean })[];
+      const adminIds = new Set(admins?.map((a) => a.id) ?? []);
+      return profiles
+        ?.filter((profile) => !adminIds.has(profile.id))
+        .map((profile) => ({ ...profile, is_admin: false })) as (UserProfile & { is_admin: boolean })[];
     },
   });
 
