@@ -52,6 +52,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
     match_id: row.match_id,
     goalsA: row.goalsA ?? row.goalsa ?? null,
     goalsB: row.goalsB ?? row.goalsb ?? null,
+    advancing_team: row.advancing_team ?? null,
   }));
 
   return NextResponse.json(normalized);

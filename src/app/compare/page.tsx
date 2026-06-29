@@ -20,7 +20,7 @@ const emptyGroups: Record<Group, Match[]> = {
 type TabId = Group | 'R16';
 
 interface UserProfile { id: string; username: string }
-interface FriendPred { match_id: string; goalsA: number | null; goalsB: number | null }
+interface FriendPred { match_id: string; goalsA: number | null; goalsB: number | null; advancing_team?: 'A' | 'B' | null }
 
 function PredBadge({ pred, match, label }: {
   pred: Prediction | FriendPred | undefined;
@@ -29,6 +29,8 @@ function PredBadge({ pred, match, label }: {
 }) {
   const finished = match.status === 'finished';
   const hasPred = pred && pred.goalsA !== null && pred.goalsB !== null;
+  const isDraw = hasPred && pred!.goalsA === pred!.goalsB;
+  const knockout = !match.group_letter;
 
   let pts: number = 0;
   let badgeColor = '';
@@ -39,6 +41,9 @@ function PredBadge({ pred, match, label }: {
       : pts === 1 ? 'bg-yellow-500/15 border-yellow-500/40 text-yellow-300'
       : 'bg-red-500/10 border-red-500/20 text-red-400';
   }
+
+  const advancingTeam = (pred as FriendPred | Prediction | undefined)?.advancing_team;
+  const advancingName = advancingTeam === 'A' ? match.teamA?.name : advancingTeam === 'B' ? match.teamB?.name : null;
 
   return (
     <div className={`flex-1 flex flex-col items-center gap-1 rounded-xl border px-3 py-2 ${
@@ -53,6 +58,11 @@ function PredBadge({ pred, match, label }: {
         </span>
       ) : (
         <span className="text-lg font-bold text-muted-foreground/40">–</span>
+      )}
+      {knockout && isDraw && advancingName && (
+        <span className="text-[10px] text-muted-foreground leading-none">
+          avanza: <span className="font-semibold text-foreground">{advancingName}</span>
+        </span>
       )}
       {finished && hasPred && (
         <span className="text-[10px] font-semibold">
