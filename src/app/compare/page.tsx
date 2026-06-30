@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { getMatches, groupMatchesByGroup } from '@/lib/matches';
 import { getPredictions } from '@/lib/predictions';
-import { calculatePoints } from '@/lib/scoring';
+import { calculatePoints, calculateKnockoutPoints } from '@/lib/scoring';
 import { supabase } from '@/lib/supabase';
 import { Group, Match, Prediction } from '@/types';
 
@@ -31,19 +31,23 @@ function PredBadge({ pred, match, label }: {
   const hasPred = pred && pred.goalsA !== null && pred.goalsB !== null;
   const isDraw = hasPred && pred!.goalsA === pred!.goalsB;
   const knockout = !match.group_letter;
+  const advancingTeam = (pred as FriendPred | Prediction | undefined)?.advancing_team;
+  const advancingName = advancingTeam === 'A' ? match.teamA?.name : advancingTeam === 'B' ? match.teamB?.name : null;
 
   let pts: number = 0;
   let badgeColor = '';
   if (finished && hasPred) {
-    pts = calculatePoints(pred!.goalsA, pred!.goalsB, match.scorea ?? undefined, match.scoreb ?? undefined);
-    badgeColor = pts === 3 ? 'bg-green-500/15 border-green-500/40 text-green-300'
+    pts = knockout
+      ? calculateKnockoutPoints(
+          pred!.goalsA, pred!.goalsB, advancingTeam ?? null,
+          match.scorea ?? undefined, match.scoreb ?? undefined, match.advancing_team ?? null
+        )
+      : calculatePoints(pred!.goalsA, pred!.goalsB, match.scorea ?? undefined, match.scoreb ?? undefined);
+    badgeColor = pts >= 3 ? 'bg-green-500/15 border-green-500/40 text-green-300'
       : pts === 2 ? 'bg-blue-500/15 border-blue-500/40 text-blue-300'
       : pts === 1 ? 'bg-yellow-500/15 border-yellow-500/40 text-yellow-300'
       : 'bg-red-500/10 border-red-500/20 text-red-400';
   }
-
-  const advancingTeam = (pred as FriendPred | Prediction | undefined)?.advancing_team;
-  const advancingName = advancingTeam === 'A' ? match.teamA?.name : advancingTeam === 'B' ? match.teamB?.name : null;
 
   return (
     <div className={`flex-1 flex flex-col items-center gap-1 rounded-xl border px-3 py-2 ${
@@ -66,7 +70,7 @@ function PredBadge({ pred, match, label }: {
       )}
       {finished && hasPred && (
         <span className="text-[10px] font-semibold">
-          {pts === 3 ? '⭐ 3 pts' : pts === 2 ? '✅ 2 pts' : pts === 1 ? '🤝 1 pt' : '❌ 0 pts'}
+          {pts === 4 ? '⭐ 4 pts' : pts === 3 ? '⭐ 3 pts' : pts === 2 ? '✅ 2 pts' : pts === 1 ? '🤝 1 pt' : '❌ 0 pts'}
         </span>
       )}
     </div>

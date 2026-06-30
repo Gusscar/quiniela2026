@@ -3,7 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 import * as XLSX from 'xlsx';
-import { calculatePoints } from '@/lib/scoring';
+import { calculatePoints, calculateKnockoutPoints } from '@/lib/scoring';
 
 export async function GET(req: NextRequest) {
   const supabaseAdmin = createClient(
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
   for (const p of preds) {
     const goalsA = p.goalsA ?? p.goalsa ?? null;
     const goalsB = p.goalsB ?? p.goalsb ?? null;
-    predsMap.set(`${p.user_id}:${p.match_id}`, { goalsA, goalsB });
+    predsMap.set(`${p.user_id}:${p.match_id}`, { goalsA, goalsB, advancing_team: p.advancing_team ?? null });
   }
 
   // ── Sheet 1: RESUMEN ──────────────────────────────────────────
@@ -70,13 +70,21 @@ export async function GET(req: NextRequest) {
       if (!pred) continue;
       total++;
       if (match.status === 'finished') {
-        const p = calculatePoints(
-          pred.goalsA, pred.goalsB,
-          match.scorea ?? match.scoreA ?? undefined,
-          match.scoreb ?? match.scoreB ?? undefined
-        );
+        const isKnockout = !match.group_letter;
+        const p = isKnockout
+          ? calculateKnockoutPoints(
+              pred.goalsA, pred.goalsB, pred.advancing_team,
+              match.scorea ?? match.scoreA ?? undefined,
+              match.scoreb ?? match.scoreB ?? undefined,
+              match.advancing_team ?? null
+            )
+          : calculatePoints(
+              pred.goalsA, pred.goalsB,
+              match.scorea ?? match.scoreA ?? undefined,
+              match.scoreb ?? match.scoreB ?? undefined
+            );
         pts += p;
-        if (p === 3) exact++;
+        if (p >= 3) exact++;
         else if (p === 2) winner++;
         else if (p === 1) draw++;
         else missed++;
@@ -106,7 +114,8 @@ export async function GET(req: NextRequest) {
   const matchHeaders = matches.map((m: any) => {
     const tA = teamsById.get(m.teama_id);
     const tB = teamsById.get(m.teamb_id);
-    return `${m.group_letter}: ${tA?.name ?? '?'} vs ${tB?.name ?? '?'}`;
+    const prefix = m.group_letter ? `Grp ${m.group_letter}` : 'R16';
+    return `${prefix}: ${tA?.name ?? '?'} vs ${tB?.name ?? '?'}`;
   });
 
   const gridData: any[] = [];
@@ -118,18 +127,29 @@ export async function GET(req: NextRequest) {
       const pred = predsMap.get(`${profile.id}:${m.id}`);
       const tA = teamsById.get(m.teama_id);
       const tB = teamsById.get(m.teamb_id);
-      const header = `${m.group_letter}: ${tA?.name ?? '?'} vs ${tB?.name ?? '?'}`;
+      const prefix = m.group_letter ? `Grp ${m.group_letter}` : 'R16';
+      const header = `${prefix}: ${tA?.name ?? '?'} vs ${tB?.name ?? '?'}`;
 
       if (!pred) {
         row[header] = '';
       } else {
-        const predStr = `${pred.goalsA}-${pred.goalsB}`;
+        const isKnockout = !m.group_letter;
+        const predStr = pred.advancing_team && isKnockout && pred.goalsA === pred.goalsB
+          ? `${pred.goalsA}-${pred.goalsB} (${pred.advancing_team === 'A' ? tA?.name : tB?.name} avanza)`
+          : `${pred.goalsA}-${pred.goalsB}`;
         if (m.status === 'finished') {
-          const pts = calculatePoints(
-            pred.goalsA, pred.goalsB,
-            m.scorea ?? m.scoreA ?? undefined,
-            m.scoreb ?? m.scoreB ?? undefined
-          );
+          const pts = isKnockout
+            ? calculateKnockoutPoints(
+                pred.goalsA, pred.goalsB, pred.advancing_team,
+                m.scorea ?? m.scoreA ?? undefined,
+                m.scoreb ?? m.scoreB ?? undefined,
+                m.advancing_team ?? null
+              )
+            : calculatePoints(
+                pred.goalsA, pred.goalsB,
+                m.scorea ?? m.scoreA ?? undefined,
+                m.scoreb ?? m.scoreB ?? undefined
+              );
           totalPts += pts;
           row[header] = `${predStr} (${pts}pts)`;
         } else {

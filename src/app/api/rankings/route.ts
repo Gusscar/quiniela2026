@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import { calculatePoints } from '@/lib/scoring';
+import { calculatePoints, calculateKnockoutPoints } from '@/lib/scoring';
 import { Standing } from '@/types';
 
 export async function GET() {
@@ -45,12 +45,22 @@ export async function GET() {
 
     const predGoalsA = pred.goalsA ?? pred.goalsa ?? null;
     const predGoalsB = pred.goalsB ?? pred.goalsb ?? null;
-    const points = calculatePoints(
-      predGoalsA,
-      predGoalsB,
-      pred.matches?.scorea ?? pred.matches?.scoreA ?? null,
-      pred.matches?.scoreb ?? pred.matches?.scoreB ?? null
-    );
+    const isKnockout = !pred.matches?.group_letter;
+    const points = isKnockout
+      ? calculateKnockoutPoints(
+          predGoalsA,
+          predGoalsB,
+          pred.advancing_team ?? null,
+          pred.matches?.scorea ?? pred.matches?.scoreA ?? null,
+          pred.matches?.scoreb ?? pred.matches?.scoreB ?? null,
+          pred.matches?.advancing_team ?? null
+        )
+      : calculatePoints(
+          predGoalsA,
+          predGoalsB,
+          pred.matches?.scorea ?? pred.matches?.scoreA ?? null,
+          pred.matches?.scoreb ?? pred.matches?.scoreB ?? null
+        );
 
     if (predGoalsA !== null && predGoalsB !== null) {
       userPoints[pred.user_id].points += points;

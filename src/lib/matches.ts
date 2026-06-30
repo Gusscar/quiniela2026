@@ -22,6 +22,7 @@ export async function getMatches(): Promise<Match[]> {
     status: m.status,
     scorea: m.scorea ?? m.scoreA ?? null,
     scoreb: m.scoreb ?? m.scoreB ?? null,
+    advancing_team: m.advancing_team ?? null,
     teamA: teamsById.get(m.teama_id) ?? teamsById.get(m.teamA_id) ?? undefined,
     teamB: teamsById.get(m.teamb_id) ?? teamsById.get(m.teamB_id) ?? undefined,
   }));

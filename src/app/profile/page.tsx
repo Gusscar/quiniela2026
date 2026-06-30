@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { getMatches } from '@/lib/matches';
 import { getPredictions } from '@/lib/predictions';
 import { getRankings } from '@/lib/rankings';
-import { calculatePoints } from '@/lib/scoring';
+import { calculatePoints, calculateKnockoutPoints } from '@/lib/scoring';
 
 export default function ProfilePage() {
   const { user, loading } = useAuthStore();
@@ -67,12 +67,13 @@ export default function ProfilePage() {
   for (const pred of predictions ?? []) {
     const match = matchesById.get(pred.match_id);
     if (!match || match.status !== 'finished') continue;
-    const pts = calculatePoints(
-      pred.goalsA,
-      pred.goalsB,
-      match.scorea ?? undefined,
-      match.scoreb ?? undefined,
-    );
+    const isKnockout = !match.group_letter;
+    const pts = isKnockout
+      ? calculateKnockoutPoints(
+          pred.goalsA, pred.goalsB, pred.advancing_team ?? null,
+          match.scorea ?? undefined, match.scoreb ?? undefined, match.advancing_team ?? null
+        )
+      : calculatePoints(pred.goalsA, pred.goalsB, match.scorea ?? undefined, match.scoreb ?? undefined);
     resolvedPredictions++;
     totalPoints += pts;
     if (pts === 3) exactCount++;
