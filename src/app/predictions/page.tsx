@@ -7,6 +7,7 @@ import { getMatches } from '@/lib/matches';
 import { getPredictions } from '@/lib/predictions';
 import { PredictionInput } from '@/components/prediction-input';
 import { MatchCard, MatchCardSkeleton } from '@/components/match-card';
+import { PreregModal } from '@/components/prereg-modal';
 import { Match, Prediction } from '@/types';
 import { useRouter } from 'next/navigation';
 
@@ -83,6 +84,8 @@ export default function PredictionsPage() {
   }
 
   return (
+    <>
+    <PreregModal />
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-4">
@@ -178,5 +181,6 @@ export default function PredictionsPage() {
         )}
       </div>
     </div>
+    </>
   );
 }
