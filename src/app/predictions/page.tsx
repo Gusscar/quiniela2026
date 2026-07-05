@@ -1,15 +1,16 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth-store';
 import { getMatches } from '@/lib/matches';
 import { getPredictions } from '@/lib/predictions';
 import { PredictionInput } from '@/components/prediction-input';
 import { MatchCard, MatchCardSkeleton } from '@/components/match-card';
-import { PreregModal } from '@/components/prereg-modal';
 import { Match, Prediction } from '@/types';
 import { useRouter } from 'next/navigation';
+
+const ROUND = 'octavos';
 
 const GROUP_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 const KNOCKOUT_ROUNDS = ['R', 'Q', 'S', 'T', 'N'] as const;
@@ -25,6 +26,9 @@ const ROUND_LABELS: Record<string, string> = {
 export default function PredictionsPage() {
   const { user, loading, isAdmin } = useAuthStore();
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const [registering, setRegistering] = useState(false);
+  const [regError, setRegError] = useState('');
 
   const { data: matches, isLoading: loadingMatches, error: matchesError } = useQuery({
     queryKey: ['matches'],
@@ -36,6 +40,40 @@ export default function PredictionsPage() {
     queryFn: () => getPredictions(user!.id),
     enabled: !!user,
   });
+
+  const { data: preregData } = useQuery({
+    queryKey: ['preregistration', user?.id, ROUND],
+    queryFn: async () => {
+      const res = await fetch(`/api/preregistration?round=${ROUND}`);
+      if (!res.ok) return { registered: false };
+      return res.json();
+    },
+    enabled: !!user,
+    staleTime: 60000,
+  });
+  const isRegistered = preregData?.registered === true;
+
+  const handleRegister = async () => {
+    setRegistering(true);
+    setRegError('');
+    try {
+      const res = await fetch('/api/preregistration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ round: ROUND }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setRegError(data.error || 'Error al registrar');
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: ['preregistration'] });
+    } catch {
+      setRegError('Error de conexion. Intenta de nuevo.');
+    } finally {
+      setRegistering(false);
+    }
+  };
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
@@ -84,8 +122,6 @@ export default function PredictionsPage() {
   }
 
   return (
-    <>
-    <PreregModal />
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-4">
@@ -97,6 +133,37 @@ export default function PredictionsPage() {
         </div>
         <p className="text-sm text-muted-foreground">Predice todos los partidos eliminatorios</p>
       </div>
+
+      {/* Pre-registro inline */}
+      {!isRegistered && (
+        <div className="mb-5 bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 rounded-2xl p-5">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+              <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h2 className="font-bold text-base mb-0.5">¿Sigues jugando en Octavos?</h2>
+              <p className="text-sm text-muted-foreground mb-3">
+                Pre-regístrate para participar en esta ronda. Si no lo haces, no participas.
+              </p>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-xl font-black text-primary">$10.000</span>
+                <span className="text-xs text-muted-foreground">pesos · cuota de participación</span>
+              </div>
+              {regError && <p className="text-destructive text-xs mb-2">{regError}</p>}
+              <button
+                onClick={handleRegister}
+                disabled={registering}
+                className="bg-primary text-primary-foreground font-semibold px-5 py-2.5 rounded-xl hover:opacity-90 active:scale-95 transition text-sm disabled:opacity-50"
+              >
+                {registering ? 'Registrando...' : 'Sí, quiero participar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Info cierre por partido */}
       {r16Matches.length > 0 && (
@@ -181,6 +248,5 @@ export default function PredictionsPage() {
         )}
       </div>
     </div>
-    </>
   );
 }
