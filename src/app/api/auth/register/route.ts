@@ -56,16 +56,16 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Block registration 5 min before the first upcoming (pending/scheduled) match
-    const { data: nextMatch } = await supabaseAdmin
+    // Block registration 5 min before the very first knockout match (fixed cutoff)
+    const { data: firstMatch } = await supabaseAdmin
       .from('matches')
       .select('datetime')
-      .in('status', ['pending', 'scheduled'])
+      .in('group_letter', ['R', 'Q', 'S', 'T', 'N'])
       .order('datetime', { ascending: true })
       .limit(1)
       .maybeSingle();
 
-    if (nextMatch && Date.now() >= new Date(nextMatch.datetime).getTime() - 5 * 60 * 1000) {
+    if (firstMatch && Date.now() >= new Date(firstMatch.datetime).getTime() - 5 * 60 * 1000) {
       return NextResponse.json({ error: 'El registro está cerrado.' }, { status: 403 });
     }
 
