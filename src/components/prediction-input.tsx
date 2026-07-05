@@ -172,7 +172,7 @@ export function PredictionInput({ match, prediction, userId, onSave }: Predictio
       {knockout && isDraw && (
         <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3">
           <p className="text-xs font-medium text-yellow-600 mb-2">
-            Empate en 120 min — ¿Quién avanza por penales?
+            Empate a 90 min — ¿Quién avanza por penales?
           </p>
           <div className="flex gap-2">
             <button
