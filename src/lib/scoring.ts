@@ -19,7 +19,8 @@ export function calculatePoints(
   return 0;
 }
 
-// Eliminatorias: 3 pts exacto, 2 pts resultado correcto, +1 si predijo empate y acertó quien avanza
+// Eliminatorias: 3 pts exacto, 2 pts resultado correcto (a 90 min), +1 si el partido terminó
+// en empate y acertaste el equipo que avanza (aunque tu predicción no haya sido empate)
 export function calculateKnockoutPoints(
   predA: number | null,
   predB: number | null,
@@ -38,10 +39,11 @@ export function calculateKnockoutPoints(
   let pts = 0;
   if (exactScore) pts = 3;
   else if (correctResult) pts = 2;
-  else return 0;
+  else pts = 0;
 
-  // +1 si el partido terminó empatado en 120 min y acertó el equipo que avanza
-  if (actualResult === 0 && predResult === 0 && predAdvancing && actualAdvancing && predAdvancing === actualAdvancing) {
+  // +1 si el partido terminó empatado a 90 min y acertaste el equipo que avanza
+  // (aplica sin importar si predijiste empate o no)
+  if (actualResult === 0 && predAdvancing && actualAdvancing && predAdvancing === actualAdvancing) {
     pts += 1;
   }
 

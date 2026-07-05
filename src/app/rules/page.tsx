@@ -2,23 +2,28 @@ export default function RulesPage() {
   const rules = [
     {
       category: 'Resultado Exacto',
-      rule: 'Acertar el marcador final idéntico (ej. dijiste 2-1 y quedó 2-1).',
+      rule: 'Acertar el marcador idéntico a los 90 minutos (ej. dijiste 2-1 y quedó 2-1).',
       points: '3 Puntos',
     },
     {
       category: 'Tendencia',
-      rule: 'Acertar al ganador o empate, pero con marcador diferente.',
+      rule: 'Acertar al ganador o empate a los 90 min, pero con marcador diferente.',
       points: '2 Puntos',
     },
     {
-      category: 'Fecha Límite',
-      rule: 'Los pronósticos cierran 30 minutos antes del primer partido de Dieciseisavos. No se aceptan cambios después de ese momento.',
-      points: '—',
+      category: 'Equipo que Avanza',
+      rule: 'Si el partido termina en empate a los 90 min, ganas +1 punto adicional si acertaste el equipo que avanza por penales — aunque tu predicción de marcador no haya sido empate.',
+      points: '+1 Punto',
     },
     {
       category: 'Tiempo Oficial',
-      rule: "Válido solo para los 90' reglamentarios (incluyendo el añadido). En caso de empate, debes seleccionar el equipo que avanza por penales (+1 punto si aciertas).",
-      points: '+1',
+      rule: "Solo cuentan los 90 minutos reglamentarios más el tiempo añadido. El tiempo extra y los penales NO se incluyen en el marcador — solo se usan para determinar quién avanza.",
+      points: '—',
+    },
+    {
+      category: 'Cierre por Partido',
+      rule: 'Cada partido se bloquea 5 minutos antes de su inicio. No se aceptan cambios después de ese momento.',
+      points: '—',
     },
     {
       category: 'Premiación',
