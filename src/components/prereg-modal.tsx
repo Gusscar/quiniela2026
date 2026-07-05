@@ -41,7 +41,7 @@ export function PreregModal() {
 
   const goToOctavos = () => {
     dismiss();
-    router.push('/octavos');
+    router.push('/predictions');
   };
 
   if (!visible || alreadyReg) return null;
