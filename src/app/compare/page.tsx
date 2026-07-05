@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { Group, Match, Prediction } from '@/types';
 
 const GROUPS: Group[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+const KNOCKOUT_ROUNDS = ['R', 'Q', 'S', 'T', 'N'];
 
 const emptyGroups: Record<Group, Match[]> = {
   A: [], B: [], C: [], D: [], E: [], F: [], G: [], H: [],
@@ -30,7 +31,7 @@ function PredBadge({ pred, match, label }: {
   const finished = match.status === 'finished';
   const hasPred = pred && pred.goalsA !== null && pred.goalsB !== null;
   const isDraw = hasPred && pred!.goalsA === pred!.goalsB;
-  const knockout = !match.group_letter;
+  const knockout = !match.group_letter || KNOCKOUT_ROUNDS.includes(match.group_letter as string);
   const advancingTeam = (pred as FriendPred | Prediction | undefined)?.advancing_team;
   const advancingName = advancingTeam === 'A' ? match.teamA?.name : advancingTeam === 'B' ? match.teamB?.name : null;
 
@@ -63,7 +64,7 @@ function PredBadge({ pred, match, label }: {
       ) : (
         <span className="text-lg font-bold text-muted-foreground/40">–</span>
       )}
-      {knockout && isDraw && advancingName && (
+      {knockout && advancingName && (
         <span className="text-[10px] text-muted-foreground leading-none">
           avanza: <span className="font-semibold text-foreground">{advancingName}</span>
         </span>
@@ -140,7 +141,7 @@ export default function ComparePage() {
   const myPredsMap = new Map((myPreds ?? []).map((p) => [p.match_id, p]));
   const friendPredsMap = new Map(friendPreds.map((p) => [p.match_id, p]));
   const grouped = matches ? groupMatchesByGroup(matches) : emptyGroups;
-  const r16Matches = (matches ?? []).filter((m) => !m.group_letter).sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime());
+  const r16Matches = (matches ?? []).filter((m) => m.group_letter && KNOCKOUT_ROUNDS.includes(m.group_letter as string)).sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime());
   const currentMatches = selectedTab === 'R16' ? r16Matches : grouped[selectedTab as Group];
 
   const myName = user.user_metadata?.username ?? user.email?.split('@')[0] ?? 'Yo';
