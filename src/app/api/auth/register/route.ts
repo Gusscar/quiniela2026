@@ -56,6 +56,19 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // Block registration 5 min before the first upcoming (pending/scheduled) match
+    const { data: nextMatch } = await supabaseAdmin
+      .from('matches')
+      .select('datetime')
+      .in('status', ['pending', 'scheduled'])
+      .order('datetime', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (nextMatch && Date.now() >= new Date(nextMatch.datetime).getTime() - 5 * 60 * 1000) {
+      return NextResponse.json({ error: 'El registro está cerrado.' }, { status: 403 });
+    }
+
     const body = await request.json();
     const { email, password, username } = body;
 
