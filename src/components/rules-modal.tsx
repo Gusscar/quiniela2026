@@ -9,6 +9,7 @@ const scoring = [
     title: 'Resultado Exacto',
     desc: 'Aciertas el marcador exacto a los 90 minutos.',
     example: 'Predices 2-1 → termina 2-1',
+    note: '',
   },
   {
     pts: 2,
@@ -16,6 +17,7 @@ const scoring = [
     title: 'Tendencia correcta',
     desc: 'Aciertas quién gana o que hay empate a 90 min, pero con marcador diferente.',
     example: 'Predices 2-1 → termina 3-1 · Predices 1-1 → termina 0-0',
+    note: 'No aplica si predijiste ganador con marcador diferente y ese equipo gana en prórroga o penales — solo cuenta el resultado a 90 min.',
   },
   {
     pts: '+1',
@@ -23,6 +25,7 @@ const scoring = [
     title: 'Equipo que avanza',
     desc: 'Si el partido termina en empate a 90 min, ganas +1 si acertaste el equipo que pasa por penales — aunque tu marcador no haya sido empate.',
     example: 'Predices 2-0 pero el partido termina 1-1 → si elegiste al equipo correcto, +1',
+    note: '',
   },
   {
     pts: 0,
@@ -30,6 +33,7 @@ const scoring = [
     title: 'Incorrecto',
     desc: 'No aciertas el resultado a 90 min.',
     example: '',
+    note: '',
   },
 ];
 
@@ -92,6 +96,11 @@ export function RulesModal() {
                       <p className="text-xs text-muted-foreground">{r.desc}</p>
                       {r.example && (
                         <p className="text-xs text-muted-foreground/60 mt-0.5 italic">{r.example}</p>
+                      )}
+                      {r.note && (
+                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 bg-amber-500/10 border border-amber-500/20 rounded-lg px-2 py-1">
+                          ⚠ {r.note}
+                        </p>
                       )}
                     </div>
                   </div>
