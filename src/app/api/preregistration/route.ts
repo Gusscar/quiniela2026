@@ -3,12 +3,6 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
-
 export async function GET(req: NextRequest) {
   const cookieStore = await cookies();
   const supabase = createServerClient(
@@ -39,6 +33,12 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const round = body.round || 'r16';
+
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
 
   const { error } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
     user_metadata: {
