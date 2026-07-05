@@ -13,7 +13,7 @@ export function PreregistrationsManagement() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin-preregistrations'],
     queryFn: async () => {
-      const res = await fetch('/api/admin/preregistrations?round=r16');
+      const res = await fetch('/api/admin/preregistrations?round=octavos');
       if (!res.ok) throw new Error('Error al cargar pre-registros');
       const json = await res.json();
       return json.data as PreRegistration[];
@@ -46,7 +46,7 @@ export function PreregistrationsManagement() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-lg font-semibold">Pre-registros · Dieciseisavos</h2>
+          <h2 className="text-lg font-semibold">Pre-registros · Octavos de Final</h2>
           <p className="text-sm text-muted-foreground">
             Usuarios interesados en la proxima quiniela
           </p>
@@ -96,7 +96,7 @@ export function PreregistrationsManagement() {
                     </td>
                     <td className="px-4 py-3 hidden sm:table-cell">
                       <span className="text-xs font-medium bg-yellow-500/15 text-yellow-500 border border-yellow-500/25 px-2 py-0.5 rounded-full">
-                        Dieciseisavos
+                        Octavos
                       </span>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground text-xs hidden md:table-cell">

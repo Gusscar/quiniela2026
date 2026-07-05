@@ -6,12 +6,18 @@ import { supabase } from '@/lib/supabase';
 import { AdminStats } from '@/components/admin/admin-stats';
 import { UsersManagement } from '@/components/admin/users-management';
 import { MatchesManagement } from '@/components/admin/matches-management';
+import { PreregistrationsManagement } from '@/components/admin/preregistrations-management';
 import Link from 'next/link';
 
-type AdminTab = 'dashboard' | 'users' | 'matches';
+type AdminTab = 'dashboard' | 'users' | 'matches' | 'prereg';
 
 function Icon({ name, className = 'w-4 h-4' }: { name: string; className?: string }) {
   const icons: Record<string, React.ReactElement> = {
+    clipboard: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+      </svg>
+    ),
     shield: (
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -87,6 +93,7 @@ export default function AdminPage() {
     { id: 'dashboard' as const, label: 'Dashboard', icon: 'dashboard' },
     { id: 'users' as const, label: 'Usuarios', icon: 'users' },
     { id: 'matches' as const, label: 'Partidos', icon: 'calendar' },
+    { id: 'prereg' as const, label: 'Pre-registros', icon: 'clipboard' },
   ];
 
   return (
@@ -153,6 +160,7 @@ export default function AdminPage() {
 
         {activeTab === 'users' && <UsersManagement />}
         {activeTab === 'matches' && <MatchesManagement />}
+        {activeTab === 'prereg' && <PreregistrationsManagement />}
       </main>
     </div>
   );
