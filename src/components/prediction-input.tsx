@@ -13,7 +13,9 @@ interface PredictionInputProps {
   onSave?: () => void;
 }
 
-const isKnockout = (match: Match) => !match.group_letter;
+const KNOCKOUT_ROUNDS = ['R', 'Q', 'S', 'T', 'N'];
+const isKnockout = (match: Match) =>
+  !match.group_letter || KNOCKOUT_ROUNDS.includes(match.group_letter as string);
 
 export function PredictionInput({ match, prediction, userId, onSave }: PredictionInputProps) {
   const [saving, setSaving] = useState(false);
