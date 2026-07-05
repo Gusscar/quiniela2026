@@ -104,7 +104,13 @@ export function MatchCard({ match, children }: MatchCardProps) {
       {/* Top bar */}
       <div className="flex items-center justify-between px-4 py-2 bg-secondary/40 border-b border-border">
         <span className="text-xs font-semibold text-muted-foreground tracking-wide uppercase">
-          Grupo {match.group_letter}
+          {match.group_letter === null ? 'Dieciseisavos'
+            : match.group_letter === 'R' ? 'Octavos de Final'
+            : match.group_letter === 'Q' ? 'Cuartos de Final'
+            : match.group_letter === 'S' ? 'Semifinal'
+            : match.group_letter === 'T' ? 'Tercer Lugar'
+            : match.group_letter === 'N' ? 'Final'
+            : `Grupo ${match.group_letter}`}
         </span>
         <span className="text-xs text-muted-foreground">{formatDate(match.datetime)}</span>
         <span className={`text-xs px-2 py-0.5 rounded-full ${status.className}`}>

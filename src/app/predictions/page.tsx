@@ -11,6 +11,15 @@ import { Match, Prediction } from '@/types';
 import { useRouter } from 'next/navigation';
 
 const GROUP_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+const KNOCKOUT_ROUNDS = [null, 'R', 'Q', 'S', 'T', 'N'] as const;
+const ROUND_LABELS: Record<string, string> = {
+  '': 'Dieciseisavos de Final',
+  R: 'Octavos de Final',
+  Q: 'Cuartos de Final',
+  S: 'Semifinal',
+  T: 'Tercer Lugar',
+  N: 'Final',
+};
 
 export default function PredictionsPage() {
   const { user, loading, isAdmin } = useAuthStore();
@@ -32,12 +41,27 @@ export default function PredictionsPage() {
     if (!loading && isAdmin) router.push('/admin');
   }, [user, loading, isAdmin, router]);
 
-  // Separate group stage from knockout matches
-  const r16Matches = useMemo(() =>
-    (matches ?? []).filter((m) => !m.group_letter || !GROUP_LETTERS.includes(m.group_letter))
+  // All knockout matches grouped by round
+  const knockoutMatches = useMemo(() =>
+    (matches ?? [])
+      .filter((m) => !m.group_letter || !GROUP_LETTERS.includes(m.group_letter as string))
       .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime()),
     [matches]
   );
+
+  const matchesByRound = useMemo(() => {
+    const map = new Map<string, typeof knockoutMatches>();
+    KNOCKOUT_ROUNDS.forEach((r) => map.set(r ?? '', []));
+    knockoutMatches.forEach((m) => {
+      const key = m.group_letter ?? '';
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(m);
+    });
+    return map;
+  }, [knockoutMatches]);
+
+  // For backward compat keep r16Matches pointing to all knockout matches
+  const r16Matches = knockoutMatches;
 
   const predictionsMap = useMemo(() => {
     const map = new Map<string, Prediction>();
@@ -63,12 +87,12 @@ export default function PredictionsPage() {
       {/* Header */}
       <div className="mb-4">
         <div className="flex items-center gap-3 mb-1">
-          <h1 className="text-2xl font-bold">Dieciseisavos de Final</h1>
+          <h1 className="text-2xl font-bold">Fase Eliminatoria</h1>
           <span className="text-xs font-medium bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 px-2 py-0.5 rounded-full">
-            Nueva ronda
+            En curso
           </span>
         </div>
-        <p className="text-sm text-muted-foreground">Predice los 16 partidos eliminatorios</p>
+        <p className="text-sm text-muted-foreground">Predice todos los partidos eliminatorios</p>
       </div>
 
       {/* Info cierre por partido */}
@@ -104,8 +128,8 @@ export default function PredictionsPage() {
         </div>
       )}
 
-      {/* Matches list */}
-      <div className="space-y-3">
+      {/* Matches list grouped by round */}
+      <div className="space-y-6">
         {matchesError ? (
           <div className="text-center py-12 text-destructive">
             Error cargando partidos: {(matchesError as Error).message}
@@ -122,20 +146,35 @@ export default function PredictionsPage() {
             </div>
             <p className="font-semibold text-lg mb-1">Proximamente</p>
             <p className="text-sm text-muted-foreground">
-              Los partidos de Dieciseisavos se habilitarán en breve.
+              Los partidos eliminatorios se habilitarán en breve.
             </p>
           </div>
         ) : (
-          r16Matches.map((match: Match) => (
-            <MatchCard key={match.id} match={match}>
-              <PredictionInput
-                match={match}
-                prediction={predictionsMap.get(match.id)}
-                userId={user.id}
-                onSave={refetchPredictions}
-              />
-            </MatchCard>
-          ))
+          KNOCKOUT_ROUNDS.map((round) => {
+            const key = round ?? '';
+            const roundMatches = matchesByRound.get(key) ?? [];
+            if (roundMatches.length === 0) return null;
+            return (
+              <div key={key}>
+                <h2 className="text-base font-semibold mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-primary inline-block" />
+                  {ROUND_LABELS[key]}
+                </h2>
+                <div className="space-y-3">
+                  {roundMatches.map((match: Match) => (
+                    <MatchCard key={match.id} match={match}>
+                      <PredictionInput
+                        match={match}
+                        prediction={predictionsMap.get(match.id)}
+                        userId={user.id}
+                        onSave={refetchPredictions}
+                      />
+                    </MatchCard>
+                  ))}
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
     </div>

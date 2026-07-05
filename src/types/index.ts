@@ -1,4 +1,5 @@
 export type Group = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L';
+export type KnockoutRound = 'R' | 'Q' | 'S' | 'T' | 'N'; // R=R16, Q=QF, S=SF, T=3er Lugar, N=Final
 
 export type MatchStatus = 'pending' | 'live' | 'finished' | 'scheduled';
 
@@ -15,7 +16,7 @@ export interface Match {
   teama_id: string;
   teamb_id: string;
   datetime: string;
-  group_letter: Group | null;
+  group_letter: Group | KnockoutRound | null;
   status: MatchStatus;
   scorea?: number | null;
   scoreb?: number | null;

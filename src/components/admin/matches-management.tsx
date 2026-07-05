@@ -91,7 +91,15 @@ function MatchRow({ match }: { match: Match }) {
     <div className={`bg-secondary rounded-xl p-4 space-y-3 ${updateMatch.isPending ? 'opacity-60 pointer-events-none' : ''}`}>
       {/* Teams + date */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <span className="text-xs text-muted-foreground">{date} · {match.group_letter ? `Grupo ${match.group_letter}` : 'Dieciseisavos'}</span>
+        <span className="text-xs text-muted-foreground">{date} · {
+          match.group_letter === null ? 'Dieciseisavos'
+          : match.group_letter === 'R' ? 'Octavos de Final'
+          : match.group_letter === 'Q' ? 'Cuartos de Final'
+          : match.group_letter === 'S' ? 'Semifinal'
+          : match.group_letter === 'T' ? 'Tercer Lugar'
+          : match.group_letter === 'N' ? 'Final'
+          : `Grupo ${match.group_letter}`
+        }</span>
         <div className="flex items-center gap-2 font-medium text-sm">
           <span>{match.teamA?.name ?? '?'}</span>
           <span className="text-muted-foreground text-xs">vs</span>
@@ -239,14 +247,15 @@ export function MatchesManagement() {
     );
   }
 
-  const r16Matches = matches.filter((m) => !m.group_letter);
+  const GROUP_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+  const r16Matches = matches.filter((m) => !m.group_letter || !GROUP_LETTERS.includes(m.group_letter as string));
   const filtered = filter === 'all' ? r16Matches : r16Matches.filter((m) => m.status === filter);
 
   return (
     <div className="bg-card rounded-xl border border-border p-6">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-3 flex-wrap">
-          <h2 className="text-lg font-semibold">Dieciseisavos ({r16Matches.length})</h2>
+          <h2 className="text-lg font-semibold">Eliminatorias ({r16Matches.length})</h2>
           <SyncButton onSynced={() => queryClient.invalidateQueries({ queryKey: ['matches'] })} />
         </div>
         <div className="flex gap-1">
