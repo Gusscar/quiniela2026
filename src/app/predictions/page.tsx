@@ -11,7 +11,7 @@ import { Match, Prediction } from '@/types';
 import { useRouter } from 'next/navigation';
 
 const GROUP_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
-const KNOCKOUT_ROUNDS = [null, 'R', 'Q', 'S', 'T', 'N'] as const;
+const KNOCKOUT_ROUNDS = ['R', 'Q', 'S', 'T', 'N'] as const;
 const ROUND_LABELS: Record<string, string> = {
   '': 'Dieciseisavos de Final',
   R: 'Octavos de Final',
@@ -41,19 +41,19 @@ export default function PredictionsPage() {
     if (!loading && isAdmin) router.push('/admin');
   }, [user, loading, isAdmin, router]);
 
-  // All knockout matches grouped by round
+  // All knockout matches grouped by round (exclude R32 which has group_letter = null)
   const knockoutMatches = useMemo(() =>
     (matches ?? [])
-      .filter((m) => !m.group_letter || !GROUP_LETTERS.includes(m.group_letter as string))
+      .filter((m) => m.group_letter && !GROUP_LETTERS.includes(m.group_letter as string))
       .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime()),
     [matches]
   );
 
   const matchesByRound = useMemo(() => {
     const map = new Map<string, typeof knockoutMatches>();
-    KNOCKOUT_ROUNDS.forEach((r) => map.set(r ?? '', []));
+    KNOCKOUT_ROUNDS.forEach((r) => map.set(r, []));
     knockoutMatches.forEach((m) => {
-      const key = m.group_letter ?? '';
+      const key = m.group_letter as string;
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(m);
     });
@@ -151,7 +151,7 @@ export default function PredictionsPage() {
           </div>
         ) : (
           KNOCKOUT_ROUNDS.map((round) => {
-            const key = round ?? '';
+            const key = round;
             const roundMatches = matchesByRound.get(key) ?? [];
             if (roundMatches.length === 0) return null;
             return (
