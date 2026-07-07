@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { getMatches } from '@/lib/matches';
 import { getPredictions } from '@/lib/predictions';
 import { getRankings } from '@/lib/rankings';
-import { calculatePoints, calculateKnockoutPoints } from '@/lib/scoring';
+import { calculatePoints, calculateKnockoutPoints, isKnockoutRound } from '@/lib/scoring';
 
 export default function ProfilePage() {
   const { user, loading } = useAuthStore();
@@ -67,7 +67,7 @@ export default function ProfilePage() {
   for (const pred of predictions ?? []) {
     const match = matchesById.get(pred.match_id);
     if (!match || match.status !== 'finished') continue;
-    const isKnockout = !match.group_letter;
+    const isKnockout = isKnockoutRound(match.group_letter);
     const pts = isKnockout
       ? calculateKnockoutPoints(
           pred.goalsA, pred.goalsB, pred.advancing_team ?? null,

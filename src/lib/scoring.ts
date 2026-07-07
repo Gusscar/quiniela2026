@@ -1,5 +1,11 @@
 export type ScoringResult = 0 | 1 | 2 | 3 | 4;
 
+// Eliminatorias: dieciseisavos (group_letter = null) y rondas R/Q/S/T/N
+const KNOCKOUT_LETTERS = ['R', 'Q', 'S', 'T', 'N'];
+export function isKnockoutRound(groupLetter: string | null | undefined): boolean {
+  return !groupLetter || KNOCKOUT_LETTERS.includes(groupLetter);
+}
+
 // Fase de grupos: 3 pts exacto, 2 pts resultado correcto, 0 pts incorrecto
 export function calculatePoints(
   predA: number | null,

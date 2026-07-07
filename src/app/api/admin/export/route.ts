@@ -3,7 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 import * as XLSX from 'xlsx';
-import { calculatePoints, calculateKnockoutPoints } from '@/lib/scoring';
+import { calculatePoints, calculateKnockoutPoints, isKnockoutRound } from '@/lib/scoring';
 
 export async function GET(req: NextRequest) {
   const supabaseAdmin = createClient(
@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
       if (!pred) continue;
       total++;
       if (match.status === 'finished') {
-        const isKnockout = !match.group_letter;
+        const isKnockout = isKnockoutRound(match.group_letter);
         const p = isKnockout
           ? calculateKnockoutPoints(
               pred.goalsA, pred.goalsB, pred.advancing_team,
@@ -133,7 +133,7 @@ export async function GET(req: NextRequest) {
       if (!pred) {
         row[header] = '';
       } else {
-        const isKnockout = !m.group_letter;
+        const isKnockout = isKnockoutRound(m.group_letter);
         const predStr = pred.advancing_team && isKnockout && pred.goalsA === pred.goalsB
           ? `${pred.goalsA}-${pred.goalsB} (${pred.advancing_team === 'A' ? tA?.name : tB?.name} avanza)`
           : `${pred.goalsA}-${pred.goalsB}`;

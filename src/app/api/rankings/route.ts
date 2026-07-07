@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import { calculatePoints, calculateKnockoutPoints } from '@/lib/scoring';
+import { calculatePoints, calculateKnockoutPoints, isKnockoutRound } from '@/lib/scoring';
 import { Standing } from '@/types';
 
 export async function GET() {
@@ -45,7 +45,7 @@ export async function GET() {
 
     const predGoalsA = pred.goalsA ?? pred.goalsa ?? null;
     const predGoalsB = pred.goalsB ?? pred.goalsb ?? null;
-    const isKnockout = !pred.matches?.group_letter;
+    const isKnockout = isKnockoutRound(pred.matches?.group_letter);
     const points = isKnockout
       ? calculateKnockoutPoints(
           predGoalsA,
